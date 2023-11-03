@@ -5,7 +5,11 @@ import shlex
 
 
 def compile_prog(source_path: str, prog_path: str, type: str):
-    args = 'g++ ' + source_path + ' -o' + type + ' ' + prog_path
+    
+    args = 'g++ ' + source_path + ' -o'
+    if type == 'O3':
+        args += type 
+    args+= ' ' + prog_path
     cmd = shlex.split(args)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
@@ -23,8 +27,6 @@ def run_pi_exp(prog_path: str, pi_args: list[str], output_fn: str):
             out = proc.communicate()[0]
             row = [num, out.decode('utf-8')]
             writer.writerow(row)
-
-    ...
 
 
 def run_matrix_exp(prog_path: str, matrix_args: list[str], output_fn: str):
