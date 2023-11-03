@@ -11,7 +11,7 @@ long double pi_rectangle(long double x, long double width) {
 
 void print_sum_and_pi(long double sum, const std::chrono::duration<double>& seconds, bool is_automatic) {
   if (is_automatic){
-    std::cout<<static_cast<long double>(4.0) * sum<<" "<<fabsl(M_PI - 4.0 * sum)<<" "<<seconds.count()<<"\n";
+    std::cout<<seconds.count()<<"\n";
   }else{
     std::cout <<"Result:     "<< static_cast<long double>(4.0) * sum << "\n";
     std::cout <<"Inaccuracy: "<< fabsl(M_PI - 4.0 * sum) << "\n";
@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
       break;
     }
   }
+
   long double step = static_cast<long double>(1.0) / N;
   long double sum = 0.0;
   const int precision = 10;
@@ -73,7 +74,6 @@ int main(int argc, char* argv[]) {
     print_sum_and_pi(sum, elapsed_seconds, is_automatic);
   }
 
-
   sum = 0.0;
     if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::middle)){
     const auto start_middle{std::chrono::steady_clock::now()};
@@ -84,7 +84,6 @@ int main(int argc, char* argv[]) {
       elapsed_seconds = end_middle - start_middle;
       print_sum_and_pi(sum, elapsed_seconds, is_automatic);
   }
-
 
   sum = 0.0;
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::right)){
