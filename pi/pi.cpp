@@ -11,7 +11,7 @@ long double pi_rectangle(long double x, long double width) {
 
 void print_sum_and_pi(long double sum, const std::chrono::duration<double>& seconds, bool is_automatic) {
   if (is_automatic){
-    std::cout<<seconds.count()<<"\n";
+    std::cout<<seconds.count();
   }else{
     std::cout <<"Result:     "<< static_cast<long double>(4.0) * sum << "\n";
     std::cout <<"Inaccuracy: "<< fabsl(M_PI - 4.0 * sum) << "\n";

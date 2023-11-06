@@ -6,9 +6,9 @@ import shlex
 
 def compile_prog(source_path: str, prog_path: str, type: str):  
     args = 'g++ ' + source_path + ' -o'
-    if type == 'O3':
+    if type == 'O3': # can't compile with any '-O' option (even with O0)
         args += type 
-    args+= ' ' + prog_path
+    args+= prog_path
     cmd = shlex.split(args)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
@@ -20,11 +20,12 @@ def run_pi_exp(prog_path: str, pi_args: list[str], output_fn: str):
         writer = csv.writer(f, delimiter=';')
         for i in range(max_deg+1):
             num = str(pow(10, i))
-            args = prog_path + ' ' + num + ' ' + rectangle_type
+            args = prog_path + ' ' + num + ' a ' + rectangle_type
             cmd = shlex.split(args)
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            out = proc.communicate()[0]
-            row = [num, out.decode('utf-8')]
+            out = proc.communicate()[0].decode('utf-8')
+            print(out)
+            row = [num, out]
             writer.writerow(row)
 
 
@@ -37,7 +38,7 @@ def run_matrix_exp(prog_path: str, matrix_args: list[str], output_fn: str):
             writer = csv.writer(f, delimiter=';')
             for i in range(min_n, max_n, step):
                 num = str(pow(10, i))
-                args = prog_path + ' ' + num
+                args = prog_path + ' a ' + num
                 cmd = shlex.split(args)
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
                 out = proc.communicate()[0]
@@ -64,18 +65,22 @@ if __name__ == '__main__':
     device = args.device
     output_fn = args.output_fn
     if pi_args:
+        pi_source = './pi/pi.cpp'
         pi_path = "./pi/pi"
         if pi_type == 'O3':
-            pi_path += 'O3'
+            pi_path += '_O3'
         elif pi_type == 'optimized':
-            pi_path += 'o'
-        compile_prog('./pi/pi.cpp', pi_path, pi_type)
+            pi_source = './pi/pi_optimized.cpp'
+            pi_path += '_o'
+        compile_prog(pi_source, pi_path, pi_type)
         run_pi_exp(pi_path, pi_args, output_fn)
     if matrix_args:
+        matrix_source = './matrix_mult/matrix_mult.cpp'
         matrix_path = './matrix_mult/matrix_mult'
         if matrix_type == 'O3':
-            matrix_path += 'O3'
+            matrix_path += '_O3'
         elif matrix_type == 'optimized':
-            matrix_path += 'o'
-        compile_prog('./matrix_mult/matrix_mult.cpp', matrix_path, matrix_type)
+            matrix_source = './matrix_mult/matrix_mult_optimized.cpp'
+            matrix_path += '_o'
+        compile_prog(matrix_source, matrix_path, matrix_type)
         run_matrix_exp(matrix_path,matrix_args,output_fn)
