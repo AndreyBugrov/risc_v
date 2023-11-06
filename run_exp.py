@@ -4,8 +4,7 @@ import argparse
 import shlex
 
 
-def compile_prog(source_path: str, prog_path: str, type: str):
-    
+def compile_prog(source_path: str, prog_path: str, type: str):  
     args = 'g++ ' + source_path + ' -o'
     if type == 'O3':
         args += type 
@@ -16,7 +15,7 @@ def compile_prog(source_path: str, prog_path: str, type: str):
 
 def run_pi_exp(prog_path: str, pi_args: list[str], output_fn: str):
     max_deg = int(pi_args[0])
-    rectangle_type = 2 if len(pi_args) < 2 else pi_args[1]
+    rectangle_type = '2' if len(pi_args) < 2 else pi_args[1]
     with open(output_fn, 'w') as f:
         writer = csv.writer(f, delimiter=';')
         for i in range(max_deg+1):
@@ -44,7 +43,6 @@ def run_matrix_exp(prog_path: str, matrix_args: list[str], output_fn: str):
                 out = proc.communicate()[0]
                 row = [num, out.decode('utf-8')]
                 writer.writerow(row)
-    ...
 
 
 if __name__ == '__main__':
