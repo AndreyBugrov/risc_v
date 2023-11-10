@@ -4,24 +4,23 @@
 #include <cmath> // M_PI
 #include <string> // std::stoi
 #include <chrono> // time
-long double pi_rectangle(long double x, long double width) {
-  const long double one = 1.0;
-  return (one / (one + x * x)) * width;
+double pi_rectangle(double x) {
+  return (1.0 / (1.0 + x * x)); // only height
 }
 
-void print_sum_and_pi(long double sum, const std::chrono::duration<double>& seconds, bool is_automatic) {
+void print_sum_and_pi(double sum, const std::chrono::duration<double>& seconds, bool is_automatic) {
   if (is_automatic){
     std::cout<<seconds.count();
   }else{
-    std::cout <<"Result:     "<< static_cast<long double>(4.0) * sum << "\n";
-    std::cout <<"Inaccuracy: "<< fabsl(M_PI - 4.0 * sum) << "\n";
+    std::cout <<"Result:     "<< sum << "\n";
+    std::cout <<"Inaccuracy: "<< fabs(M_PI - sum) << "\n";
     std::cout <<"Seconds:    " << seconds.count()<<"\n";
     std::cout<<"\n";
   }
 }
 
 /// 1 000 000 000 operations make inaccuracy 0 in every test
-/// 1 000 000 operations make inaccuracy 0 in middle rectangles
+/// 100 000 operations make inaccuracy 0 in middle rectangles
 
 enum class counting_type{
   left,
@@ -31,25 +30,24 @@ enum class counting_type{
 };
 
 int main(int argc, char* argv[]) {
-  const int N = argc > 1 ? std::stoi(argv[1]) : 1000;
-  bool is_automatic = false;
+  const bool is_automatic = std::string(argv[1]) == std::string("a") ? true : false; // it is strange but argv[1] != "a" && argv[1] != "a\0"
+  const int N = argc > 1 ? std::stoi(argv[2]) : 1000;
   counting_type type;
-  if(argc>2){
-    is_automatic = std::string(argv[2]) == std::string("a") ? true : false; // it is strange but argv[2] != "a" && argv[2] != "a\0"
+  if(argc>3){
     int mode = std::stoi(std::string(argv[3]));
     switch (mode)
     {
-    case 0:
+    case 1:
       type = counting_type::left;
       /* code */
       break;
-    case 1:
+    case 2:
       type = counting_type::middle;
           break;
-    case 2:
+    case 3:
       type = counting_type::right;
           break;
-    case 3:
+    case 0:
     type = counting_type::all;
           break;
     default:
@@ -57,8 +55,8 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  long double step = static_cast<long double>(1.0) / N;
-  long double sum = 0.0;
+  double step = static_cast<double>(1.0) / N;
+  double sum = 0.0;
   const int precision = 10;
   std::cout << std::fixed; // to set precision to every value
   std::cout << std::setprecision(precision);
@@ -67,8 +65,9 @@ int main(int argc, char* argv[]) {
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::left)){
     const auto start_left{std::chrono::steady_clock::now()};
     for (int i = 0; i < N; i++) {
-      sum += pi_rectangle(static_cast<long double>(i) * step, step);
+      sum += pi_rectangle(static_cast<double>(i) * step);
     }
+    sum *= 4.0 * step;
     const auto end_left{std::chrono::steady_clock::now()};
     elapsed_seconds = end_left - start_left;
     print_sum_and_pi(sum, elapsed_seconds, is_automatic);
@@ -78,19 +77,21 @@ int main(int argc, char* argv[]) {
     if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::middle)){
     const auto start_middle{std::chrono::steady_clock::now()};
     for (int i = 0; i < N; i++) {
-      sum += pi_rectangle((i * step + (i + 1) * step) * 0.5, step);
+      sum += pi_rectangle((i * step + (i + 1) * step) * 0.5);
     }
-      const auto end_middle{std::chrono::steady_clock::now()};
-      elapsed_seconds = end_middle - start_middle;
-      print_sum_and_pi(sum, elapsed_seconds, is_automatic);
+    sum *= 4.0 * step;
+    const auto end_middle{std::chrono::steady_clock::now()};
+    elapsed_seconds = end_middle - start_middle;
+    print_sum_and_pi(sum, elapsed_seconds, is_automatic);
   }
 
   sum = 0.0;
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::right)){
     const auto start_right{std::chrono::steady_clock::now()};
     for (int i = 0; i < N; i++) {
-      sum += pi_rectangle((static_cast<long double>(i) + 1) * step, step);
-  }
+      sum += pi_rectangle((static_cast<double>(i) + 1) * step);
+    }
+    sum *= 4.0 * step;
     const auto end_right{std::chrono::steady_clock::now()};
     elapsed_seconds = end_right - start_right;
     print_sum_and_pi(sum, elapsed_seconds, is_automatic);

@@ -20,29 +20,28 @@ def run_pi_exp(prog_path: str, pi_args: list[str], output_fn: str):
         writer = csv.writer(f, delimiter=';')
         for i in range(max_deg+1):
             num = str(pow(10, i))
-            args = prog_path + ' ' + num + ' a ' + rectangle_type
+            args = prog_path + ' a ' + num + ' ' + rectangle_type
             cmd = shlex.split(args)
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             out = proc.communicate()[0].decode('utf-8')
-            print(out)
             row = [num, out]
             writer.writerow(row)
 
 
 def run_matrix_exp(prog_path: str, matrix_args: list[str], output_fn: str):
-    if len(matrix_args) < 2:
+    if len(matrix_args) < 4:
         min_n = int(matrix_args[0])
-        max_n = int(matrix_args[1]) + 1
-        step = int(matrix_args[2])
+        step = int(matrix_args[1])
+        max_n = int(matrix_args[2]) + 1
         with open(output_fn, 'w') as f:
             writer = csv.writer(f, delimiter=';')
             for i in range(min_n, max_n, step):
-                num = str(pow(10, i))
+                num = str(i)
                 args = prog_path + ' a ' + num
                 cmd = shlex.split(args)
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-                out = proc.communicate()[0]
-                row = [num, out.decode('utf-8')]
+                out = proc.communicate()[0].decode('utf-8')
+                row = [num, out]
                 writer.writerow(row)
 
 

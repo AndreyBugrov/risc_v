@@ -15,38 +15,11 @@ const double etalon[test_element_num]={
 
 
 void simple_matrix_mult(double* a, double* b, double* c, int n_a, int m_b, int elements_in_vector){
-    
-    /*
-        The i-th row is multiplied by the j-th column of the matrix:
-            1. Number of elements (k) in a.row and in b.column are equal: m(a) = n(b)
-            2. j = [0, m(b)-1] - column number of b
-            3. i = [0, n(a)-1] - row number of a
-            4. n(c) = n(a), m(c) = m(b) 
-    */
-
-    // for(int i=0;i<n_a;i++){
-    //     for(int j=0;j<n_b;j++){
-    //         for(int k=0;k<n_b; k++){
-    //             std::cout<<"i: "<<i<<", " << "j: "<< j <<", k:"<< k <<"\n";
-    //             c[i*n_a+j]+=a[i*n_a+k]*b[j*n_b+k];
-    //         }          
-    //     }    
-    // }
-
-    //    std::cout<<"------------------\n";
     for(int i=0;i<n_a;i++){ // i-th row in a
         for(int j=0;j<m_b;j++){ // j-th column in b
-            // std::cout<<"c="<<c[i*m_b+j]<<"\n";
             for(int k=0;k<elements_in_vector; k++){ // k-th element in vector
-                // std::cout<<"\n";
-                // std::cout<<"a["<<i<<"]["<<k<<"] * b["<<k<<"]["<<j<<"]\n";
-                // std::cout<<a[i*elements_in_vector+k]<<" * "<< b[k*m_b+j]<<"\n";
                 c[i*m_b+j]+=a[i*elements_in_vector+k]*b[k*m_b+j];
-                // c[i*n_a+j]+=a[i*n_a+k]*b[j*m_b+k]; // for b^T or for storing b by columns
             }
-            // std::cout<<"------------------";
-            // std::cout<<"c["<<i<<"]["<<j<<"]="<<c[i*m_b+j]<<"\n";
-            // std::cout<<"------------------"<<"etalon="<<etalon[i*m_b+j]<<"\n";
         }
     }
 }
@@ -127,16 +100,17 @@ std::string print_test_result(double* result_matrix){
     return check_test_result(result_matrix)? "Test passed": "Test failed";
 }
 void print_result(const std::chrono::duration<double>& seconds){
-    std::cout<<seconds.count()<<"\n";
+    std::cout<<seconds.count();
 }
 
 int main(int argc, char* argv[]){
+    const bool is_automatic = std::string(argv[1]) == std::string("a") ? true : false; // it is strange but argv[1] != "a" && argv[1] != "a\0"
     // n x m matrixes:
     //a: n_a x elements_in_vector
     //b: elements_in_vector x m_b
-    const int n_a = argc>1? std::stoi(argv[1]) : 333;
-    const int elements_in_vector = argc > 2? std::stoi(argv[2]): 997;
-    const int m_b = argc>3? std::stoi(argv[3]): 100;
+    const int n_a = argc>2? std::stoi(argv[2]) : 300;
+    const int elements_in_vector = argc > 3? std::stoi(argv[3]): n_a;
+    const int m_b = argc>4? std::stoi(argv[4]): n_a;
     double* a, *b, *c;
 
     a = new double[n_a*elements_in_vector];
@@ -154,6 +128,8 @@ int main(int argc, char* argv[]){
     print_result(elapsed_seconds);
     
     delete[] a,b,c;
+    if(is_automatic)
+        return 0;
 
     a = new double[3*2];
     b = new double [2*4];
