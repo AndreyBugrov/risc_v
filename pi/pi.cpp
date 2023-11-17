@@ -10,7 +10,7 @@ double pi_rectangle(double x) {
 
 void print_sum_and_pi(double sum, const std::chrono::duration<double>& seconds, bool is_automatic) {
   if (is_automatic){
-    std::cout<<seconds.count();
+    std::cout<<fabs(M_PI - sum)<<" "<<seconds.count();
   }else{
     std::cout <<"Result:     "<< sum << "\n";
     std::cout <<"Inaccuracy: "<< fabs(M_PI - sum) << "\n";
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
   double step = static_cast<double>(1.0) / N;
   double sum = 0.0;
-  const int precision = 10;
+  const int precision = 13;
   std::cout << std::fixed; // to set precision to every value
   std::cout << std::setprecision(precision);
   std::chrono::duration<double> elapsed_seconds;
