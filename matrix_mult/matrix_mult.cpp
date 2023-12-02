@@ -99,8 +99,36 @@ bool check_test_result(double* result_matrix){
 std::string print_test_result(double* result_matrix){
     return check_test_result(result_matrix)? "Test passed": "Test failed";
 }
-void print_result(const std::chrono::duration<double>& seconds){
-    std::cout<<seconds.count();
+void print_result(double seconds, bool is_automatic){
+    if(is_automatic){
+        std::cout<<seconds;
+    }
+    else{
+        std::cout<<seconds<<"\n";
+    }
+}
+
+int get_max_value_index(double* vec, int n){
+    double max_value = vec[0];
+    int max_index = 0;
+    for(int i=1;i<n;i++){
+        if(max_value<vec[i]){
+            max_value = vec[i];
+            max_index = i;
+        }
+    }
+    return max_index;
+}
+
+void save_result(double* total_seconds, int exp_num, bool is_automatic){
+    int max_index = get_max_value_index(total_seconds, exp_num);
+    double seconds_without_outliers;
+    for(int i=0;i<exp_num;i++){
+      if(i!=max_index){
+        seconds_without_outliers+=total_seconds[i];
+      }
+    }
+    print_result(seconds_without_outliers / (exp_num-1), is_automatic);
 }
 
 int main(int argc, char* argv[]){
@@ -108,10 +136,12 @@ int main(int argc, char* argv[]){
     // n x m matrixes:
     //a: n_a x elements_in_vector
     //b: elements_in_vector x m_b
-    const int n_a = argc>2? std::stoi(argv[2]) : 300;
-    const int elements_in_vector = argc > 3? std::stoi(argv[3]): n_a;
-    const int m_b = argc>4? std::stoi(argv[4]): n_a;
+    const int exp_num = argc>2? std::stoi(argv[2]) : 1;
+    const int n_a = argc>3? std::stoi(argv[3]) : 300;
+    const int elements_in_vector = argc > 4? std::stoi(argv[4]): n_a;
+    const int m_b = argc>5? std::stoi(argv[5]): n_a;
     double* a, *b, *c;
+    double* total_seconds = new double[exp_num];
 
     a = new double[n_a*elements_in_vector];
     b = new double[elements_in_vector*m_b];
@@ -119,13 +149,17 @@ int main(int argc, char* argv[]){
 
     generate_rand_matrix(a,n_a,elements_in_vector,0.0,10);
     generate_rand_matrix(b,elements_in_vector,m_b,-5.0,5.0);
-    generate_zero_matrix(c,n_a,m_b);
 
-    const auto start_simple{std::chrono::steady_clock::now()};
-    simple_matrix_mult(a,b,c,n_a,m_b,elements_in_vector);
-    const auto end_simple{std::chrono::steady_clock::now()};
-    std::chrono::duration<double> elapsed_seconds = end_simple - start_simple;
-    print_result(elapsed_seconds);
+    for(int i=0;i<exp_num;i++){
+        generate_zero_matrix(c,n_a,m_b);
+        const auto start_simple{std::chrono::steady_clock::now()};
+        simple_matrix_mult(a,b,c,n_a,m_b,elements_in_vector);
+        const auto end_simple{std::chrono::steady_clock::now()};
+        std::chrono::duration<double> elapsed_seconds = end_simple - start_simple;
+        total_seconds[i] = elapsed_seconds.count();
+    }
+    save_result(total_seconds, exp_num, is_automatic);
+
     
     delete[] a,b,c;
     if(is_automatic)

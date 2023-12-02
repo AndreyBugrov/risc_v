@@ -7,7 +7,6 @@ import sys
 
 def error_message(msg: str):
     print(f"Error: {msg}")
-    sys.exit(-1)
 
 
 def compile_prog(source_path: str, exe_path: str, optimization_flag: str):  
@@ -18,15 +17,15 @@ def compile_prog(source_path: str, exe_path: str, optimization_flag: str):
 
 
 
-def run_pi_exp(exe_path: str, pi_args: list[str], output_fn: str):
-    max_deg = int(pi_args[0])
-    rectangle_type = '2' if len(pi_args) < 2 else pi_args[1]
-    with open(output_fn, 'w') as f:
+def run_pi_exp(exe_path: str, pi_args: list[str], exp_num: str, output_fn: str):
+    max_deg = int(pi_args[1])
+    rectangle_type = '2'
+    with open(output_fn, 'w', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(['Число шагов','Погрешность','Время'])
-        for i in range(max_deg+1):
+        for i in range(2, max_deg+1):
             num = str(pow(10, i))
-            args = exe_path + ' a ' + num + ' ' + rectangle_type
+            args = exe_path + ' a ' + num + ' ' + rectangle_type + ' ' + exp_num
             cmd = shlex.split(args)
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             out = proc.communicate()[0].decode('utf-8')
@@ -34,17 +33,17 @@ def run_pi_exp(exe_path: str, pi_args: list[str], output_fn: str):
             writer.writerow(row)
 
 
-def run_matrix_exp(exe_path: str, matrix_args: list[str], output_fn: str):
+def run_matrix_exp(exe_path: str, matrix_args: list[str], exp_num: str, output_fn: str):
     if len(matrix_args) < 4:
         min_n = int(matrix_args[0])
         step = int(matrix_args[1])
         max_n = int(matrix_args[2]) + 1
-        with open(output_fn, 'w') as f:
+        with open(output_fn, 'w', encoding='utf-8') as f:
             writer = csv.writer(f, delimiter=';')
             writer.writerow(['Число элементов в строке','Время'])
             for i in range(min_n, max_n, step):
                 num = str(i)
-                args = exe_path + ' a ' + num
+                args = exe_path + ' a ' + num + ' ' + exp_num
                 cmd = shlex.split(args)
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
                 out = proc.communicate()[0].decode('utf-8')
@@ -54,24 +53,34 @@ def run_matrix_exp(exe_path: str, matrix_args: list[str], output_fn: str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run experiments")
-    parser.add_argument('-p', "--pi-args", help="Arguments for pi calculating: 1) max deg 2) rectangle type (unnecessary)",
+    parser.add_argument('-p', "--pi-args", help="Arguments for pi calculating: 1) double (d) or long double (ld) version 1) max deg (better for 9-th)",
                         nargs="*")
     parser.add_argument('-m', "--matrix-args", help="Arguments for matrix multiplication: 1) min n 2)step 3) max n",
                         nargs="*")
-    parser.add_argument('-t', '--exe-type', help="Type of execution file", choices=['normal', 'fast', 'optimized'], required=True)
+    parser.add_argument('-t', '--exe-type', help="Type of execution file", choices=['release', 'normal', 'fast', 'omp', 'optimized'], required=True)
+    parser.add_argument('-n', '--exp-num', help="Number of experiments with equal parameters", required=True)
     parser.add_argument("-o", "--output-fn", help="Path to csv file", required=True)
     args = parser.parse_args()
     pi_args = args.pi_args
     matrix_args = args.matrix_args
     exe_type = args.exe_type
+    exp_num = args.exp_num
     output_fn = args.output_fn
 
+    was_error = False
     if pi_args and matrix_args:
         error_message("choose only one mode")
+        was_error = True
     if not pi_args and not matrix_args:
         error_message("choose any mode")
+        was_error = True
+    if exp_num < 1:
+        error_message("choose at least one")
+        was_error = True
+    if was_error:
+        sys.exit(-1)
     
-    type_handlings = {'normal': ('normal', '-O3'), 'fast': ('fast', '-Ofast'), 'optimized': ('optimized', '-O3')}   
+    type_handlings = {'release': ('release', '-O2'), 'normal': ('normal', '-O3'), 'fast': ('fast', '-Ofast'), 'omp': ('openmp','-O2'), 'optimized': ('optimized', '-O3')}   
     source_path = ''
     exe_path = ''
 
