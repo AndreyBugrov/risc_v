@@ -100,6 +100,8 @@ int main(int argc, char* argv[]) {
   zero_vector(total_seconds, exp_num);
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::left)){
     for(int n=0; n<exp_num; n++){
+      sum = 0.0; /// zeroing every exp_num not to bring garbage to the next experiment.
+                 /// do not do it at the end of iteration to prevent saving null sum
       const auto start_left{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
         sum += pi_rectangle(i * step);
@@ -114,6 +116,8 @@ int main(int argc, char* argv[]) {
 
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::middle)){
     for(int n=0; n<exp_num; n++){
+      sum = 0.0; /// zeroing every exp_num not to bring garbage to the next experiment.
+                 /// do not do it at the end of iteration to prevent saving null sum
       const auto start_middle{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
         sum += pi_rectangle((i * step + (i + 1) * step) * 0.5);
@@ -128,6 +132,8 @@ int main(int argc, char* argv[]) {
 
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::right)){
     for(int n=0; n<exp_num; n++){
+      sum = 0.0; /// zeroing every exp_num not to bring garbage to the next experiment.
+                 /// do not do it at the end of iteration to prevent saving null sum
       const auto start_right{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
         sum += pi_rectangle((i + 1) * step);

@@ -92,6 +92,8 @@ if __name__ == '__main__':
     
     if exe_type == 'optimized':
         source_path = exe_path + '_optimized.cpp'
+    elif exe_type == 'omp':
+        source_path = exe_path + '_omp.cpp'
     else:
         source_path = exe_path + '.cpp'
 

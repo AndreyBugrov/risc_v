@@ -53,7 +53,6 @@ void save_result(double* total_seconds, int exp_num, long double& sum, bool is_a
     }
     print_sum_and_pi(sum, seconds_without_outliers / (exp_num-1), is_automatic);
   }
-  sum = static_cast<long double> (0.0);
   zero_vector_d(total_seconds, exp_num);
 }
 
@@ -101,6 +100,8 @@ int main(int argc, char* argv[]) {
   zero_vector_d(total_seconds, exp_num);
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::left)){
     for(int n=0; n<exp_num; n++){
+      sum = static_cast<long double> (0.0); /// zeroing every exp_num not to bring garbage to the next experiment.
+                                            /// do not do it at the end of iteration to prevent saving null sum
       const auto start_left{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
         sum += pi_rectangle(i * step);
@@ -109,12 +110,15 @@ int main(int argc, char* argv[]) {
       const auto end_left{std::chrono::steady_clock::now()};
       std::chrono::duration<double> elapsed_seconds = end_left - start_left;
       total_seconds[n] = elapsed_seconds.count();
+      sum = static_cast<long double> (0.0);
     }
     save_result(total_seconds, exp_num, sum, is_automatic);
   }
 
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::middle)){
     for(int n=0; n<exp_num; n++){
+      sum = static_cast<long double> (0.0); /// zeroing every exp_num not to bring garbage to the next experiment.
+                                            /// do not do it at the end of iteration to prevent saving null sum
       const auto start_middle{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
         sum += pi_rectangle((i * step + (i + 1) * step) * 0.5);
@@ -123,12 +127,15 @@ int main(int argc, char* argv[]) {
       const auto end_middle{std::chrono::steady_clock::now()};
       std::chrono::duration<double> elapsed_seconds = end_middle - start_middle;
       total_seconds[n] = elapsed_seconds.count();
+      sum = static_cast<long double> (0.0);
     }
     save_result(total_seconds, exp_num, sum, is_automatic);
   }
 
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::right)){
     for(int n=0; n<exp_num; n++){
+      sum = static_cast<long double> (0.0); /// zeroing every exp_num not to bring garbage to the next experiment.
+                                            /// do not do it at the end of iteration to prevent saving null sum
       const auto start_right{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
         sum += pi_rectangle((i + 1) * step);
