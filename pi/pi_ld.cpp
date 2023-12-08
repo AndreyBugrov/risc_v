@@ -110,7 +110,6 @@ int main(int argc, char* argv[]) {
       const auto end_left{std::chrono::steady_clock::now()};
       std::chrono::duration<double> elapsed_seconds = end_left - start_left;
       total_seconds[n] = elapsed_seconds.count();
-      sum = static_cast<long double> (0.0);
     }
     save_result(total_seconds, exp_num, sum, is_automatic);
   }
@@ -127,7 +126,6 @@ int main(int argc, char* argv[]) {
       const auto end_middle{std::chrono::steady_clock::now()};
       std::chrono::duration<double> elapsed_seconds = end_middle - start_middle;
       total_seconds[n] = elapsed_seconds.count();
-      sum = static_cast<long double> (0.0);
     }
     save_result(total_seconds, exp_num, sum, is_automatic);
   }
