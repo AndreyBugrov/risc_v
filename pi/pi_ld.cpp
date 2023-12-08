@@ -4,13 +4,13 @@
 #include <cmath> // M_PI
 #include <string> // std::stoi
 #include <chrono> // time
-double pi_rectangle(double x) {
+long double pi_rectangle(long double x) {
   return (1.0 / (1.0 + x * x)); // only height
 }
 
 void print_sum_and_pi(double sum, double seconds, bool is_automatic) {
   if (is_automatic){
-    std::cout<<fabs(M_PI - sum)<<" "<<seconds;
+    std::cout<<fabsl(M_PI - sum)<<" "<<seconds;
   }else{
     std::cout <<"Result:     "<< sum << "\n";
     std::cout <<"Inaccuracy: "<< fabs(M_PI - sum) << "\n";
@@ -19,26 +19,31 @@ void print_sum_and_pi(double sum, double seconds, bool is_automatic) {
   }
 }
 
-void zero_vector(double* vec, int n){
+// zero seconds vector therefore type of vec is double*
+void zero_vector_d(double* vec, int n){
   for(int i=0;i<n;i++){
-    vec[i]=0.0;
+    vec[i]=static_cast<long double>(0.0);
   }
 }
 
-int get_max_value_index(double* vec, int n){
-  double max_value = vec[0];
-  int max_index = 0;
-  for(int i=1;i<n;i++){
-    if(max_value<vec[i]){
-      max_value = vec[i];
-      max_index = i;
+// compare seconds therefore type of vec is double*
+int get_max_value_index_d(double* vec, int n){
+    if(n == 1){
+        return 1; // not existing index
     }
-  }
-  return max_index;
+    long double max_value = vec[0];
+    int max_index = 0;
+    for(int i=1;i<n;i++){
+        if(max_value<vec[i]){
+        max_value = vec[i];
+        max_index = i;
+        }
+    }
+    return max_index;
 }
 
-void save_result(double* total_seconds, int exp_num, double& sum, bool is_automatic){
-  int max_index = get_max_value_index(total_seconds, exp_num);
+void save_result(double* total_seconds, int exp_num, long double& sum, bool is_automatic){
+  int max_index = get_max_value_index_d(total_seconds, exp_num);
     double seconds_without_outliers;
     for(int i=0;i<exp_num;i++){
       if(i!=max_index){
@@ -47,7 +52,7 @@ void save_result(double* total_seconds, int exp_num, double& sum, bool is_automa
     }
     print_sum_and_pi(sum, seconds_without_outliers / (exp_num-1), is_automatic);
     sum = 0.0;
-    zero_vector(total_seconds, exp_num);
+    zero_vector_d(total_seconds, exp_num);
 }
 
 enum class counting_type{
@@ -67,38 +72,37 @@ int main(int argc, char* argv[]) {
     {
     case 1:
       type = counting_type::left;
-      /* code */
       break;
     case 2:
-      type = counting_type::middle;
-          break;
+        type = counting_type::middle;
+        break;
     case 3:
-      type = counting_type::right;
-          break;
+        type = counting_type::right;
+        break;
     case 0:
-    type = counting_type::all;
-          break;
+        type = counting_type::all;
+        break;
     default:
       break;
     }
   }
   const int exp_num = (argc>4)? std::stoi(argv[4]) : 1;
 
-  double step = 1.0 / N;
-  double sum = 0.0;
+  long double step = static_cast<long double>(1.0 / N);
+  long double sum = 0.0;
   const int precision = 13;
   std::cout << std::fixed; // to set precision to every value
   std::cout << std::setprecision(precision);
   double* total_seconds = new double[exp_num];
   double average_seconds;
 
-  zero_vector(total_seconds, exp_num);
+  zero_vector_d(total_seconds, exp_num);
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::left)){
     for(int n=0; n<exp_num; n++){
       sum=0.0;
       const auto start_left{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
-        sum += pi_rectangle(static_cast<double>(i) * step);
+        sum += pi_rectangle(i * step);
       }
       sum *= 4.0 * step;
       const auto end_left{std::chrono::steady_clock::now()};
@@ -128,7 +132,7 @@ int main(int argc, char* argv[]) {
       sum = 0.0;
       const auto start_right{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
-        sum += pi_rectangle((static_cast<double>(i) + 1) * step);
+        sum += pi_rectangle((i + 1) * step);
       }
       sum *= 4.0 * step;
       const auto end_right{std::chrono::steady_clock::now()};
@@ -138,5 +142,6 @@ int main(int argc, char* argv[]) {
     save_result(total_seconds, exp_num, sum, is_automatic);
   }
 
+  delete[] total_seconds;
   return 0;
 }

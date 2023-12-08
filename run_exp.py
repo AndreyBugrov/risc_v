@@ -7,6 +7,7 @@ import sys
 
 def error_message(msg: str):
     print(f"Error: {msg}")
+    sys.exit(-1)
 
 
 def compile_prog(source_path: str, exe_path: str, optimization_flag: str):  
@@ -18,7 +19,7 @@ def compile_prog(source_path: str, exe_path: str, optimization_flag: str):
 
 
 def run_pi_exp(exe_path: str, pi_args: list[str], exp_num: str, output_fn: str):
-    max_deg = int(pi_args[1])
+    max_deg = int(pi_args[1]) if len(pi_args) >=2 else 9
     rectangle_type = '2'
     with open(output_fn, 'w', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=';')
@@ -53,7 +54,7 @@ def run_matrix_exp(exe_path: str, matrix_args: list[str], exp_num: str, output_f
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run experiments")
-    parser.add_argument('-p', "--pi-args", help="Arguments for pi calculating: 1) double (d) or long double (ld) version 1) max deg (better for 9-th)",
+    parser.add_argument('-p', "--pi-args", help="Arguments for pi calculating: 1) double (d) or long double (ld) version 2) max deg (better for 9-th) - not necessary",
                         nargs="*")
     parser.add_argument('-m', "--matrix-args", help="Arguments for matrix multiplication: 1) min n 2)step 3) max n",
                         nargs="*")
@@ -67,25 +68,23 @@ if __name__ == '__main__':
     exp_num = args.exp_num
     output_fn = args.output_fn
 
-    was_error = False
     if pi_args and matrix_args:
         error_message("choose only one mode")
-        was_error = True
     if not pi_args and not matrix_args:
         error_message("choose any mode")
-        was_error = True
-    if exp_num < 1:
-        error_message("choose at least one")
-        was_error = True
-    if was_error:
-        sys.exit(-1)
+    if int(exp_num) < 1:
+        error_message("choose at least one experiment")
     
-    type_handlings = {'release': ('release', '-O2'), 'normal': ('normal', '-O3'), 'fast': ('fast', '-Ofast'), 'omp': ('openmp','-O2'), 'optimized': ('optimized', '-O3')}   
+    type_handlings = {'release': ('release', '-O2'), 'normal': ('normal', '-O3'), 'fast': ('fast', '-Ofast'), 
+                      'omp': ('openmp','-O2'), 'optimized': ('optimized', '-O3')}   
     source_path = ''
     exe_path = ''
 
     if pi_args:
         exe_path = 'pi/pi'
+        if pi_args[0] != 'd' and pi_args[0] != 'ld':
+            error_message("wrong type of pi calculating result")
+        exe_path += '_' + pi_args[0]
     elif matrix_args:
         exe_path = 'matrix_mult/matrix_mult'
     
@@ -98,6 +97,6 @@ if __name__ == '__main__':
 
     compile_prog(source_path, exe_path, type_handlings[exe_type][1])
     if pi_args:
-        run_pi_exp(exe_path, pi_args, output_fn)
+        run_pi_exp(exe_path, pi_args, exp_num, output_fn)
     if matrix_args:
-        run_matrix_exp(exe_path, matrix_args, output_fn)
+        run_matrix_exp(exe_path, matrix_args, exp_num, output_fn)
