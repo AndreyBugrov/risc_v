@@ -28,9 +28,6 @@ void zero_vector_d(double* vec, int n){
 
 // compare seconds therefore type of vec is double*
 int get_max_value_index_d(double* vec, int n){
-    if(n == 1){
-        return 1; // not existing index
-    }
     long double max_value = vec[0];
     int max_index = 0;
     for(int i=1;i<n;i++){
@@ -43,7 +40,11 @@ int get_max_value_index_d(double* vec, int n){
 }
 
 void save_result(double* total_seconds, int exp_num, long double& sum, bool is_automatic){
-  int max_index = get_max_value_index_d(total_seconds, exp_num);
+  if(exp_num==1){
+    print_sum_and_pi(sum, total_seconds[0], is_automatic);
+  }
+  else{
+      int max_index = get_max_value_index_d(total_seconds, exp_num);
     double seconds_without_outliers;
     for(int i=0;i<exp_num;i++){
       if(i!=max_index){
@@ -51,8 +52,9 @@ void save_result(double* total_seconds, int exp_num, long double& sum, bool is_a
       }
     }
     print_sum_and_pi(sum, seconds_without_outliers / (exp_num-1), is_automatic);
-    sum = 0.0;
-    zero_vector_d(total_seconds, exp_num);
+  }
+  sum = static_cast<long double> (0.0);
+  zero_vector_d(total_seconds, exp_num);
 }
 
 enum class counting_type{
@@ -89,7 +91,7 @@ int main(int argc, char* argv[]) {
   const int exp_num = (argc>4)? std::stoi(argv[4]) : 1;
 
   long double step = static_cast<long double>(1.0 / N);
-  long double sum = 0.0;
+  long double sum = static_cast<long double> (0.0);
   const int precision = 13;
   std::cout << std::fixed; // to set precision to every value
   std::cout << std::setprecision(precision);
@@ -99,7 +101,6 @@ int main(int argc, char* argv[]) {
   zero_vector_d(total_seconds, exp_num);
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::left)){
     for(int n=0; n<exp_num; n++){
-      sum=0.0;
       const auto start_left{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
         sum += pi_rectangle(i * step);
@@ -114,7 +115,6 @@ int main(int argc, char* argv[]) {
 
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::middle)){
     for(int n=0; n<exp_num; n++){
-      sum = 0.0;
       const auto start_middle{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
         sum += pi_rectangle((i * step + (i + 1) * step) * 0.5);
@@ -129,7 +129,6 @@ int main(int argc, char* argv[]) {
 
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::right)){
     for(int n=0; n<exp_num; n++){
-      sum = 0.0;
       const auto start_right{std::chrono::steady_clock::now()};
       for (int i = 0; i < N; i++) {
         sum += pi_rectangle((i + 1) * step);

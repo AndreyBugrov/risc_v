@@ -12,6 +12,8 @@ def error_message(msg: str):
 
 def compile_prog(source_path: str, exe_path: str, optimization_flag: str):  
     args = 'g++ ' + source_path + ' -o ' + exe_path + ' ' + optimization_flag
+    if exe_path.endswith('omp'):
+        args+= ' -fopenmp'
     cmd = shlex.split(args)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     proc.communicate()
@@ -76,7 +78,7 @@ if __name__ == '__main__':
         error_message("choose at least one experiment")
     
     type_handlings = {'release': ('release', '-O2'), 'normal': ('normal', '-O3'), 'fast': ('fast', '-Ofast'), 
-                      'omp': ('openmp','-O2'), 'optimized': ('optimized', '-O3')}   
+                      'omp': ('omp','-O2'), 'optimized': ('optimized', '-O3')}   
     source_path = ''
     exe_path = ''
 
