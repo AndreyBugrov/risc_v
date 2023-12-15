@@ -10,10 +10,11 @@ def error_message(msg: str):
     sys.exit(-1)
 
 
-def compile_prog(source_path: str, exe_path: str, optimization_flag: str):  
+def compile_prog(source_path: str, exe_path: str, optimization_flag: str):
     args = 'g++ ' + source_path + ' -o ' + exe_path + ' ' + optimization_flag
     if exe_path.endswith('omp'):
         args+= ' -fopenmp'
+    print(args)
     cmd = shlex.split(args)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     proc.communicate()
@@ -37,10 +38,10 @@ def run_pi_exp(exe_path: str, pi_args: list[str], exp_num: str, output_fn: str):
 
 
 def run_matrix_exp(exe_path: str, matrix_args: list[str], exp_num: str, output_fn: str):
-    if len(matrix_args) < 4:
+    if len(matrix_args) >= 3:
         min_n = int(matrix_args[0])
-        step = int(matrix_args[1])
-        max_n = int(matrix_args[2]) + 1
+        max_n = int(matrix_args[1]) + 1
+        step = int(matrix_args[2])
         with open(output_fn, 'w', encoding='utf-8') as f:
             writer = csv.writer(f, delimiter=';')
             writer.writerow(['Число элементов в строке','Время'])
@@ -52,13 +53,15 @@ def run_matrix_exp(exe_path: str, matrix_args: list[str], exp_num: str, output_f
                 out = proc.communicate()[0].decode('utf-8')
                 row = [num, out]
                 writer.writerow(row)
+    else:
+        error_message("Too few matrix arguments")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run experiments")
     parser.add_argument('-p', "--pi-args", help="Arguments for pi calculating: 1) double (d) or long double (ld) version 2) max deg (better for 9-th) - not necessary",
                         nargs="*")
-    parser.add_argument('-m', "--matrix-args", help="Arguments for matrix multiplication: 1) min n 2)step 3) max n",
+    parser.add_argument('-m', "--matrix-args", help="Arguments for matrix multiplication: 1) min n 2) max n 3) step",
                         nargs="*")
     parser.add_argument('-t', '--exe-type', help="Type of execution file", choices=['release', 'normal', 'fast', 'omp', 'optimized'], required=True)
     parser.add_argument('-n', '--exp-num', help="Number of experiments with equal parameters", required=True)

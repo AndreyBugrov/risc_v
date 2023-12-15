@@ -43,8 +43,8 @@ void save_result(double* total_seconds, int exp_num, double& sum, bool is_automa
     print_sum_and_pi(sum, total_seconds[0], is_automatic);
   }
   else{
-      int max_index = get_max_value_index(total_seconds, exp_num);
-    double seconds_without_outliers;
+    int max_index = get_max_value_index(total_seconds, exp_num);
+    double seconds_without_outliers = 0;
     for(int i=0;i<exp_num;i++){
       if(i!=max_index){
         seconds_without_outliers+=total_seconds[i];

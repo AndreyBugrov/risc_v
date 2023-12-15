@@ -45,7 +45,7 @@ void save_result(double* total_seconds, int exp_num, long double& sum, bool is_a
   }
   else{
       int max_index = get_max_value_index_d(total_seconds, exp_num);
-    double seconds_without_outliers;
+    double seconds_without_outliers = 0;
     for(int i=0;i<exp_num;i++){
       if(i!=max_index){
         seconds_without_outliers+=total_seconds[i];

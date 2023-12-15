@@ -3,10 +3,6 @@
 #include <string> // stoi
 #include <chrono> // time
 
-// functor matrix generating
-// class matrix
-// functor matrix multiplication
-
 const int test_element_num = 12;
 const double etalon[test_element_num]={    
     5, -1, 4, -1, 
@@ -120,16 +116,34 @@ int get_max_value_index(double* vec, int n){
     return max_index;
 }
 
+// void save_result(double* total_seconds, int exp_num, bool is_automatic){
+//     int max_index = get_max_value_index(total_seconds, exp_num);
+//     double seconds_without_outliers;
+//     for(int i=0;i<exp_num;i++){
+//       if(i!=max_index){
+//         seconds_without_outliers+=total_seconds[i];
+//       }
+//     }
+//     print_result(seconds_without_outliers / (exp_num-1), is_automatic);
+// }
+
 void save_result(double* total_seconds, int exp_num, bool is_automatic){
+  if(exp_num==1){
+    print_result(total_seconds[0], is_automatic);
+  }
+  else{
     int max_index = get_max_value_index(total_seconds, exp_num);
-    double seconds_without_outliers;
+    double seconds_without_outliers = 0;
     for(int i=0;i<exp_num;i++){
-      if(i!=max_index){
-        seconds_without_outliers+=total_seconds[i];
-      }
+        if(i!=max_index){
+            seconds_without_outliers+=total_seconds[i];
+        }
     }
     print_result(seconds_without_outliers / (exp_num-1), is_automatic);
+  }
+  generate_zero_matrix(total_seconds, exp_num, 1);
 }
+
 
 int main(int argc, char* argv[]){
     const bool is_automatic = std::string(argv[1]) == std::string("a") ? true : false; // it is strange but argv[1] != "a" && argv[1] != "a\0"

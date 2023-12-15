@@ -44,7 +44,7 @@ void save_result(double* total_seconds, int exp_num, double& sum, bool is_automa
   }
   else{
       int max_index = get_max_value_index(total_seconds, exp_num);
-    double seconds_without_outliers;
+    double seconds_without_outliers = 0;
     for(int i=0;i<exp_num;i++){
       if(i!=max_index){
         seconds_without_outliers+=total_seconds[i];
@@ -53,7 +53,7 @@ void save_result(double* total_seconds, int exp_num, double& sum, bool is_automa
     print_sum_and_pi(sum, seconds_without_outliers / (exp_num-1), is_automatic);
   }
   sum = 0.0;
-  zero_vector(total_seconds, exp_num);
+  zero_vector(total_seconds, exp_num); ////////////
 }
 
 enum class counting_type{
