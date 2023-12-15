@@ -14,7 +14,6 @@ def compile_prog(source_path: str, exe_path: str, optimization_flag: str):
     args = 'g++ ' + source_path + ' -o ' + exe_path + ' ' + optimization_flag
     if exe_path.endswith('omp'):
         args+= ' -fopenmp'
-    print(args)
     cmd = shlex.split(args)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     proc.communicate()
