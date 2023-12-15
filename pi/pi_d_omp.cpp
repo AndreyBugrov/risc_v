@@ -52,7 +52,6 @@ void save_result(double* total_seconds, int exp_num, double& sum, bool is_automa
     }
     print_sum_and_pi(sum, seconds_without_outliers / (exp_num-1), is_automatic);
   }
-  zero_vector(total_seconds, exp_num);
 }
 
 void merge_sum(double* thread_sum, double& sum, double step, int proc){

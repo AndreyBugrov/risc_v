@@ -4,13 +4,13 @@
 #include <chrono> // time
 
 const int test_element_num = 12;
-const double etalon[test_element_num]={    
+const long double etalon[test_element_num]={    
     5, -1, 4, -1, 
     -1, 2, 1, 2, 
     3, 0, 3, 0};
 
 
-void simple_matrix_mult(double* a, double* b, double* c, int n_a, int m_b, int elements_in_vector){
+void simple_matrix_mult(long double* a, long double* b, long double* c, int n_a, int m_b, int elements_in_vector){
     for(int i=0;i<n_a;i++){ // i-th row in a
         for(int j=0;j<m_b;j++){ // j-th column in b
             for(int k=0;k<elements_in_vector; k++){ // k-th element in vector
@@ -20,7 +20,7 @@ void simple_matrix_mult(double* a, double* b, double* c, int n_a, int m_b, int e
     }
 }
 
-void matrix_mult_second_transposed(double* a, double* b, double* c, int n_a, int n_b, int elements_in_vector){
+void matrix_mult_second_transposed(long double* a, long double* b, long double* c, int n_a, int n_b, int elements_in_vector){
     for(int i=0;i<n_a;i++){
         for(int j=0;j<n_b;j++){
             for(int k=0;k<elements_in_vector;k++){
@@ -30,7 +30,7 @@ void matrix_mult_second_transposed(double* a, double* b, double* c, int n_a, int
     }
 }
 
-void transpose_matrix(double* matr, int n, int m){
+void transpose_matrix(long double* matr, int n, int m){
     double* tmp_matr = new double[n*m];
     for(int i=0;i<n;i++){
         for(int j=0;j<m;j++){
@@ -43,7 +43,7 @@ void transpose_matrix(double* matr, int n, int m){
     delete[] tmp_matr;
 }
 
-void generate_rand_matrix(double* matr, int n, int m, double min, double max){
+void generate_rand_matrix(long double* matr, int n, int m, double min, double max){
     std::random_device rd;
     std::mt19937 engine(rd());
     std::uniform_real_distribution<double> gen(min, max);
@@ -51,12 +51,12 @@ void generate_rand_matrix(double* matr, int n, int m, double min, double max){
         matr[i] = gen(engine);
     }
 }
-void generate_zero_matrix(double* matr, int n, int m){
+void generate_zero_matrix(long double* matr, int n, int m){
     for(int i=0;i<n*m;i++){
         matr[i]=0.0;
     }
 }
-void generate_test_matrixes(double* a, double* b, double* c){
+void generate_test_matrixes(long double* a, long double* b, long double* c){
     int n_a = 3;
     int elements_in_vector = 2;
     int m_b = 4;
@@ -84,7 +84,7 @@ void generate_test_matrixes(double* a, double* b, double* c){
     3 0 3 0
     */
 }
-bool check_test_result(double* result_matrix){
+bool check_test_result(long double* result_matrix){
     for(int i=0;i<test_element_num;i++){
         if(result_matrix[i]!=etalon[i]){
             return false;
@@ -92,7 +92,7 @@ bool check_test_result(double* result_matrix){
     }
     return true;
 }
-std::string print_test_result(double* result_matrix){
+std::string print_test_result(long double* result_matrix){
     return check_test_result(result_matrix)? "Test passed": "Test failed";
 }
 void print_result(double seconds, bool is_automatic){
@@ -104,7 +104,7 @@ void print_result(double seconds, bool is_automatic){
     }
 }
 
-int get_max_value_index(double* vec, int n){
+int get_max_value_index_d(double* vec, int n){
     double max_value = vec[0];
     int max_index = 0;
     for(int i=1;i<n;i++){
@@ -116,23 +116,12 @@ int get_max_value_index(double* vec, int n){
     return max_index;
 }
 
-// void save_result(double* total_seconds, int exp_num, bool is_automatic){
-//     int max_index = get_max_value_index(total_seconds, exp_num);
-//     double seconds_without_outliers;
-//     for(int i=0;i<exp_num;i++){
-//       if(i!=max_index){
-//         seconds_without_outliers+=total_seconds[i];
-//       }
-//     }
-//     print_result(seconds_without_outliers / (exp_num-1), is_automatic);
-// }
-
 void save_result(double* total_seconds, int exp_num, bool is_automatic){
   if(exp_num==1){
     print_result(total_seconds[0], is_automatic);
   }
   else{
-    int max_index = get_max_value_index(total_seconds, exp_num);
+    int max_index = get_max_value_index_d(total_seconds, exp_num);
     double seconds_without_outliers = 0;
     for(int i=0;i<exp_num;i++){
         if(i!=max_index){
@@ -141,7 +130,6 @@ void save_result(double* total_seconds, int exp_num, bool is_automatic){
     }
     print_result(seconds_without_outliers / (exp_num-1), is_automatic);
   }
-  generate_zero_matrix(total_seconds, exp_num, 1);
 }
 
 
@@ -150,16 +138,17 @@ int main(int argc, char* argv[]){
     // n x m matrixes:
     //a: n_a x elements_in_vector
     //b: elements_in_vector x m_b
-    const int exp_num = argc>2? std::stoi(argv[2]) : 1;
-    const int n_a = argc>3? std::stoi(argv[3]) : 300;
-    const int elements_in_vector = argc > 4? std::stoi(argv[4]): n_a;
-    const int m_b = argc>5? std::stoi(argv[5]): n_a;
-    double* a, *b, *c;
+    const int matrix_size = argc>2? std::stoi(argv[2]) : 300;
+    const int n_a = matrix_size;
+    const int elements_in_vector = matrix_size;
+    const int m_b = matrix_size;
+    const int exp_num = argc>3? std::stoi(argv[3]) : 1;
+    long double* a, *b, *c;
     double* total_seconds = new double[exp_num];
 
-    a = new double[n_a*elements_in_vector];
-    b = new double[elements_in_vector*m_b];
-    c = new double[n_a*m_b];
+    a = new long double[n_a*elements_in_vector];
+    b = new long double[elements_in_vector*m_b];
+    c = new long double[n_a*m_b];
 
     generate_rand_matrix(a,n_a,elements_in_vector,0.0,10);
     generate_rand_matrix(b,elements_in_vector,m_b,-5.0,5.0);
@@ -179,9 +168,9 @@ int main(int argc, char* argv[]){
     if(is_automatic)
         return 0;
 
-    a = new double[3*2];
-    b = new double [2*4];
-    c = new double [3*4];
+    a = new long double[3*2];
+    b = new long double [2*4];
+    c = new long double [3*4];
     generate_test_matrixes(a,b,c);
     simple_matrix_mult(a,b,c,3,4,2);
     for(int i=0;i<3;i++){

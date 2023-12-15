@@ -37,10 +37,10 @@ def run_pi_exp(exe_path: str, pi_args: list[str], exp_num: str, output_fn: str):
 
 
 def run_matrix_exp(exe_path: str, matrix_args: list[str], exp_num: str, output_fn: str):
-    if len(matrix_args) >= 3:
-        min_n = int(matrix_args[0])
-        max_n = int(matrix_args[1]) + 1
-        step = int(matrix_args[2])
+    if len(matrix_args) >= 4:
+        min_n = int(matrix_args[1])
+        max_n = int(matrix_args[2]) + 1
+        step = int(matrix_args[3])
         with open(output_fn, 'w', encoding='utf-8') as f:
             writer = csv.writer(f, delimiter=';')
             writer.writerow(['Число элементов в строке','Время'])
@@ -58,9 +58,11 @@ def run_matrix_exp(exe_path: str, matrix_args: list[str], exp_num: str, output_f
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run experiments")
-    parser.add_argument('-p', "--pi-args", help="Arguments for pi calculating: 1) double (d) or long double (ld) version 2) max deg (better for 9-th) - not necessary",
+    parser.add_argument('-p', "--pi-args", help="Arguments for pi calculating: "
+                        "1) double (d) or long double (ld) version 2) max deg (better for 9-th) - not necessary", 
                         nargs="*")
-    parser.add_argument('-m', "--matrix-args", help="Arguments for matrix multiplication: 1) min n 2) max n 3) step",
+    parser.add_argument('-m', "--matrix-args", help="Arguments for matrix multiplication: "
+                        "1) double (d) or long double (ld) version 2) min n 3) max n 4) step",
                         nargs="*")
     parser.add_argument('-t', '--exe-type', help="Type of execution file", choices=['release', 'normal', 'fast', 'omp', 'optimized'], required=True)
     parser.add_argument('-n', '--exp-num', help="Number of experiments with equal parameters", required=True)
@@ -87,10 +89,13 @@ if __name__ == '__main__':
     if pi_args:
         exe_path = 'pi/pi'
         if pi_args[0] != 'd' and pi_args[0] != 'ld':
-            error_message("wrong type of pi calculating result")
+            error_message("wrong type of pi calculating")
         exe_path += '_' + pi_args[0]
     elif matrix_args:
         exe_path = 'matrix_mult/matrix_mult'
+        if matrix_args[0] != 'd' and matrix_args[0] != 'ld':
+            error_message("wrong type of matrix multiplication")
+        exe_path += '_' + matrix_args[0]
     
     if exe_type == 'optimized':
         source_path = exe_path + '_optimized.cpp'

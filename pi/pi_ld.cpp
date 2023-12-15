@@ -52,8 +52,6 @@ void save_result(double* total_seconds, int exp_num, long double& sum, bool is_a
       }
     }
     print_sum_and_pi(sum, seconds_without_outliers / (exp_num-1), is_automatic);
-  }
-  zero_vector_d(total_seconds, exp_num);
 }
 
 enum class counting_type{
