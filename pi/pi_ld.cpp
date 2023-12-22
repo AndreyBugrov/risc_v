@@ -8,7 +8,7 @@ long double pi_rectangle(long double x) {
   return (1.0 / (1.0 + x * x)); // only height
 }
 
-void print_sum_and_pi(double sum, double seconds, bool is_automatic) {
+void print_sum_and_pi(long double sum, double seconds, bool is_automatic) {
   if (is_automatic){
     std::cout<<fabsl(M_PI - sum)<<" "<<seconds;
   }else{
@@ -52,6 +52,7 @@ void save_result(double* total_seconds, int exp_num, long double& sum, bool is_a
       }
     }
     print_sum_and_pi(sum, seconds_without_outliers / (exp_num-1), is_automatic);
+  }
 }
 
 enum class counting_type{

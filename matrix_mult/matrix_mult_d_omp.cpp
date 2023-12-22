@@ -13,26 +13,26 @@ const double etalon[test_element_num]={
 
 void simple_matrix_mult(double* a, double* b, double* c, int n_a, int m_b, int elements_in_vector){
     int proc = omp_get_num_procs();
-    // if(n_a==3){
-    //     for(int i=0;i<3;i++){
-    //         for(int j=0;j<2;j++){
-    //             std::cout<<a[i*4+j]<<" ";
-    //         }
-    //         std::cout<<"\n";
-    //     }
-    //     for(int i=0;i<2;i++){
-    //         for(int j=0;j<4;j++){
-    //             std::cout<<b[i*4+j]<<" ";
-    //         }
-    //         std::cout<<"\n";
-    //     }
-    //     for(int i=0;i<3;i++){
-    //         for(int j=0;j<4;j++){
-    //             std::cout<<c[i*4+j]<<" ";
-    //         }
-    //         std::cout<<"\n";
-    //     }
-    // }
+    if(n_a==3){
+        for(int i=0;i<3;i++){
+            for(int j=0;j<2;j++){
+                std::cout<<a[i*2+j]<<" ";
+            }
+            std::cout<<"\n";
+        }
+        for(int i=0;i<2;i++){
+            for(int j=0;j<4;j++){
+                std::cout<<b[i*4+j]<<" ";
+            }
+            std::cout<<"\n";
+        }
+        for(int i=0;i<3;i++){
+            for(int j=0;j<4;j++){
+                std::cout<<c[i*4+j]<<" ";
+            }
+            std::cout<<"\n";
+        }
+    }
     #pragma omp parallel for  shared(a, b, c, n_a, m_b, elements_in_vector) // why even counters should be in shared memory?
     for(int i=0;i<n_a;i++){ // i-th row in a
         for(int j=0;j<m_b;j++){ // j-th column in b
@@ -187,7 +187,10 @@ int main(int argc, char* argv[]){
     save_result(total_seconds, exp_num, is_automatic);
 
     
-    delete[] a,b,c;
+    //delete[] a,b,c;
+    delete[] a;
+    delete[] b;
+    delete[] c;
     if(is_automatic)
         return 0;
 

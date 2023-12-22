@@ -4,7 +4,6 @@
 #include <cmath> // M_PI
 #include <string> // std::stoi
 #include <chrono> // time
-#include <omp.h> //Open MP
 double pi_rectangle(double x) {
   return (1.0 / (1.0 + x * x)); // only height
 }
