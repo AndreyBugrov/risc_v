@@ -129,25 +129,25 @@ int main(int argc, char* argv[]) {
   }
 
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::middle)){
-    for(int n=0; n<exp_num; n++){
-      sum = 0.0; /// zeroing every exp_num not to bring garbage to the next experiment.
-                 /// do not do it at the end of iteration to prevent saving null sum
-      const auto start_middle{std::chrono::steady_clock::now()};
-      zero_vector(thread_sum, proc);
-      #pragma omp parallel num_threads(proc) default(none) shared(step, N, thread_sum)
-      {
-        int thread_num = omp_get_thread_num();
-        #pragma omp for
-        for (int i=0; i < N; i++) {
-          thread_sum[thread_num] += pi_rectangle((i * step + (i + 1) * step) * 0.5);
-        }
+  for(int n=0; n<exp_num; n++){
+    sum = 0.0; /// zeroing every exp_num not to bring garbage to the next experiment.
+                /// do not do it at the end of iteration to prevent saving null sum
+    zero_vector(thread_sum, proc);
+    const auto start_middle{std::chrono::steady_clock::now()};
+    #pragma omp parallel num_threads(proc) default(none) shared(step, N, thread_sum)
+    {
+      int thread_num = omp_get_thread_num();
+      #pragma omp for
+      for (int i=0; i < N; i++) {
+        thread_sum[thread_num] += pi_rectangle((i * step + (i + 1) * step) * 0.5);
       }
-      merge_sum(thread_sum, sum, step, proc);
-      const auto end_middle{std::chrono::steady_clock::now()};
-      std::chrono::duration<double> elapsed_seconds = end_middle - start_middle;
-      total_seconds[n] = elapsed_seconds.count();
     }
-    save_result(total_seconds, exp_num, sum, is_automatic);
+    merge_sum(thread_sum, sum, step, proc);
+    const auto end_middle{std::chrono::steady_clock::now()};
+    std::chrono::duration<double> elapsed_seconds = end_middle - start_middle;
+    total_seconds[n] = elapsed_seconds.count();
+  }
+  save_result(total_seconds, exp_num, sum, is_automatic);
   }
 
   if(!is_automatic||is_automatic&&(type==counting_type::all||type==counting_type::right)){
