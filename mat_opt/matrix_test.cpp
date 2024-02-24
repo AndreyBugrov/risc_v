@@ -1,3 +1,5 @@
+// #include "all.hpp"
+#include "common.hpp"
 #include "matrix_test.hpp"
 
 void print_test_result(std::vector<double> comparing_output, double seconds){
@@ -12,36 +14,7 @@ void print_test_result(std::vector<double> comparing_output, double seconds){
     std::cout<<"\tTime: "<<seconds<<" seconds\n";
 }
 
-void fill_in_matrixes_to_multiply(double* a, double* b, double* c){
-    int n_a = 3;
-    int elements_in_vector = 2;
-    int m_b = 4;
-    a[0]=1;
-    a[1] = 2;
-    a[2] = 1;
-    a[3] = -1;
-    a[4] = a[5]= 1;
-
-    b[0] = 1;
-    b[1] = 1;
-    b[2] = 2;
-    b[3] = 1;
-    b[4] = 2;
-    b[5] = -1;
-    b[6] = 1;
-    b[7] = -1;
-    for(int i=0;i<n_a*m_b;i++){
-        c[i]=0.0;
-    }
-    /*
-    c= 
-    5 -1 4 -1 
-    -1 2 1 2 
-    3 0 3 0
-    */
-}
-
-void fixed_multiplication_test(void (*matrix_mult_function)(double*, double*, double*, int, int, int)){
+void fixed_multiplication_test(mult_func matrix_mult_function){
     const auto start_my_mult{std::chrono::steady_clock::now()};
 
     int n_a = 3;
@@ -87,7 +60,7 @@ void fixed_multiplication_test(void (*matrix_mult_function)(double*, double*, do
     std::chrono::duration<double> elapsed_seconds = end_my_mult - start_my_mult;
     print_test_result(comparison_output, elapsed_seconds.count());
 }
-void fixed_transpose_matrix_test(void (*transpose_matrix_function)(double*, int, int)){
+void fixed_transpose_matrix_test(tr_func transpose_matrix_function){
     const auto start_my_transpose{std::chrono::steady_clock::now()};
 
     int n = 103;
@@ -115,7 +88,7 @@ void fixed_transpose_matrix_test(void (*transpose_matrix_function)(double*, int,
     print_test_result(comparison_output, elapsed_seconds.count());
 }
 
-void open_blas_multiplication_test(void (*matrix_mult_function)(double*, double*, double*, int, int, int)){
+void open_blas_multiplication_test(mult_func matrix_mult_function){
     const auto start_my_mult{std::chrono::steady_clock::now()};
 
     int min_random_length = 17;
@@ -153,7 +126,7 @@ void open_blas_multiplication_test(void (*matrix_mult_function)(double*, double*
     print_test_result(comparison_output, elapsed_seconds.count());
 }
 
-void open_blas_transpose_matrix_test(void (*transpose_matrix_function)(double*, int, int)){
+void open_blas_transpose_matrix_test(tr_func transpose_matrix_function){
     const auto start_my_transpose{std::chrono::steady_clock::now()};
 
     int min_random_length = 17;
@@ -176,7 +149,10 @@ void open_blas_transpose_matrix_test(void (*transpose_matrix_function)(double*, 
     }
 
     transpose_matrix_function(matrix, n, m);
-    ////////////////////////////////////////////////////////////////
+
+     ///////////////////////////////////////////
+    // TO DO: use cblas function and compare //
+   ///////////////////////////////////////////
 
     std::vector<double> comparison_output = get_unequal_elements(base_matrix, matrix, n*m);
     const auto end_my_transpose{std::chrono::steady_clock::now()};
@@ -211,22 +187,21 @@ std::vector<double> get_unequal_elements(double* base, double* current, int n){
 }
 
 int main(int argc, char* argv[]){
-    const int matrix_size = argc>2? std::stoi(argv[2]) : 1000;
-    const int n_a = matrix_size;
-    const int elements_in_vector = matrix_size;
-    const int m_b = matrix_size;
-    const int exp_num = argc>3? std::stoi(argv[3]) : 1;
-    double* a, *b, *c;
-
-    double* test_seconds = new double[exp_num];
-
-    a = new double[n_a*elements_in_vector];
-    b = new double[elements_in_vector*m_b];
-    c = new double[n_a*m_b];
-    double* c_blas = new double[n_a*m_b];
-    generate_rand_matrix(a, n_a, elements_in_vector, 0.0, 100.0);
-    generate_rand_matrix(b, elements_in_vector, m_b, -50.0, 50.0);
-
-    void (*matrix_mult_function)(double* a, double* b, double* c, int n_a, int m_b, int elements_in_vector);
-
+    std::map<std::string, int> all_test_types={{"all", 0}, {"all_mult", 1}, {"all_transpose", 2}, {"special_mult", 3}};
+    std::string test_type = std::string(argv[1]);
+    int test_type_num = all_test_types[test_type];
+    switch (test_type_num)
+    {
+    case 0:
+        break;
+    case 1:
+        break;
+    case 2:
+        break;
+    case 3:
+        break;
+    
+    default:
+        return 0;
+    }
 }
