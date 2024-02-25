@@ -23,27 +23,65 @@ void simple_matrix_mult(double* a, double* b, double* c, int n_a, int m_b, int e
     }
 }
 
-void matrix_mult_second_transposed(double* a, double* b, double* c, int n_a, int n_b, int elements_in_vector){
+void matrix_mult_second_transposed(double* a, double* b, double* c, int n_a, int m_b, int elements_in_vector){
+        #pragma omp parallel for shared(a, b, c, n_a, m_b, elements_in_vector)
     for(int i=0;i<n_a;i++){
-        for(int j=0;j<n_b;j++){
+        for(int j=0;j<m_b;j++){
             for(int k=0;k<elements_in_vector;k++){
-                c[i*n_b+j]=a[i*elements_in_vector+k]*b[j*elements_in_vector+k];
+                c[i*m_b+j] += a[i*elements_in_vector+k]*b[j*elements_in_vector+k];
+                // std::cout<<"c="<<c[i*n_b+j]<<"\n";
             }
         }
+        // std::cout<<"i="<<i<<"\n";
     }
 }
 
 void transpose_matrix(double* matr, int n, int m){
-    double* tmp_matr = new double[n*m];
+    // double* tmp_matr = new double[m*n];
+    // for(int i=0;i<n;i++){
+    //     for(int j=0;j<m;j++){
+    //         tmp_matr[j*n+i]=matr[i*m+j];
+    //     }
+    // }
+    // for(int i=0;i<n*m;i++){
+    //     matr[i]=tmp_matr[i];
+    // }
+    // delete[] tmp_matr;
+
+    double* tmp_matr = new double[m*n];
     for(int i=0;i<n;i++){
         for(int j=0;j<m;j++){
-            tmp_matr[i*m+j]=matr[j*m+i];
+            tmp_matr[j*n+i]=matr[i*m+j];
         }
     }
     for(int i=0;i<n*m;i++){
         matr[i]=tmp_matr[i];
     }
     delete[] tmp_matr;
+
+    // double i_j, j_i;
+    // for(int i=0;i<n;i++){
+    //     for(int j=i+1;j<m;j++){
+    //         i_j = matr[i*m+j];
+    //         j_i = matr[j*n+i];
+    //         matr[i*m+j]=j_i;
+    //         matr[j*n+i]=i_j;
+    //     }
+    // }
+
+    // for(int i=0;i<n;i++){
+    //     for(int j=i;j<m;j++){
+    //         std::swap(matr[i * m + j], matr[j * n + i]);
+    //     }
+    // }
+}
+
+void memory_transpose_square_matrix(double* matr, int n, int m){
+    for(int i=0;i<n;i++){
+        for(int j=i;j<m;j++){
+            std::swap(matr[i * m + j], matr[j * n + i]);
+        }
+    }
 }
 
 void generate_rand_matrix(double* matr, int n, int m, double min, double max){
@@ -139,7 +177,10 @@ void save_result(double* total_seconds, int exp_num, bool is_automatic){
 bool are_vectors_equal(double* a, double* b, int n){
     for(int i=0; i<n; i++){
         if(abs(a[i]-b[i])>0.0001)
+            {
+                std::cout<<"abs = "<<abs(a[i]-b[i])<<"\n";
             return false;
+            }
     }
     return true;
 }
@@ -159,6 +200,8 @@ int main(int argc, char* argv[]){
     double* total_seconds = new double[exp_num];
     double* dgemm_seconds = new double[exp_num];
 
+    double* base_b = new double[elements_in_vector*m_b];
+
     a = new double[n_a*elements_in_vector];
     b = new double[elements_in_vector*m_b];
     c = new double[n_a*m_b];
@@ -167,16 +210,27 @@ int main(int argc, char* argv[]){
     generate_rand_matrix(a,n_a,elements_in_vector,0.0,10);
     generate_rand_matrix(b,elements_in_vector,m_b,-5.0,5.0);
 
+    for(int i=0;i<elements_in_vector*m_b;i++){
+        base_b[i]=b[i];
+    }
+
     for(int i=0;i<exp_num;i++){
         generate_zero_matrix(c,n_a,m_b);
+        memory_transpose_square_matrix(b, elements_in_vector, m_b);
         const auto start_simple{std::chrono::steady_clock::now()};
-        simple_matrix_mult(a,b,c,n_a,m_b,elements_in_vector);
+        // simple_matrix_mult(a,b,c,n_a,m_b,elements_in_vector);
+        matrix_mult_second_transposed(a,b,c,n_a,m_b,elements_in_vector);
         const auto end_simple{std::chrono::steady_clock::now()};
         const auto start_dgemm{std::chrono::steady_clock::now()};
+
+        memory_transpose_square_matrix(b, elements_in_vector, m_b);
         cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans, n_a, m_b, elements_in_vector, 1.0, a, elements_in_vector, b, m_b,0.0,c_blas,m_b);
         const auto end_dgemm{std::chrono::steady_clock::now()};
 
-        //std::cout<<are_vectors_equal(c, c_blas, n_a*m_b)<<"\n";
+        std::cout<<are_vectors_equal(c, c_blas, n_a*m_b)<<"\n";
+
+        std::cout<<"b and base_b: "<<are_vectors_equal(base_b, b, elements_in_vector*m_b)<<"\n";
+
 
         std::chrono::duration<double> elapsed_seconds = end_simple - start_simple;
         total_seconds[i] = elapsed_seconds.count();
@@ -189,7 +243,7 @@ int main(int argc, char* argv[]){
     delete[] a; 
     delete[] b;
     delete[] c;
-    return 0;
+    // return 0;
 
     a = new double[3*2];
     b = new double [2*4];
