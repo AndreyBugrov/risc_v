@@ -26,10 +26,11 @@ enum class test_type{
     big
 };
 
-void multiplication_test(std::string test_name, mult_func matrix_mult_function, test_type type);
-void transpose_test(std::string test_name, test_type type);
+bool multiplication_test(std::string test_name, mult_func matrix_mult_function, test_type type);
 
 // return two pairs: 1 - pair of unequal element number and first met different unequal element index 2 - pair of minimum and maximum difference
 // return percentage of unequal elements, minimum and maximum difference
 std::vector<double> get_unequal_elements(double* base, double* current, int size);
-void print_test_result(std::vector<double> comparison_output, double seconds);
+// return is test passed or not
+bool print_test_result(std::vector<double> comparison_output, double seconds);
+void print_test_statistics(int passed_num, int failed_num);

@@ -11,6 +11,9 @@ void base_matrix_mult_omp(double* a, double* b, double* c, int n);
 void b_transposed_matrix_mult(double* a, double* b, double* c, int n);
 void b_transposed_matrix_mult_omp(double* a, double* b, double* c, int n);
 
+void transposed_matrix_mult(double* a, double* b, double* c, int n);
+void transposed_matrix_mult_omp(double* a, double* b, double* c, int n);
+
 void base_block_matrix_mult(double* a, double* b, double* c, int n, int block_size);
 void optimal_block_matrix_mult(double* a, double* b, double* c, int n);
 void b_transposed_block_matrix_mult(double* a, double* b, double* c, int n);

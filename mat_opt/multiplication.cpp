@@ -16,7 +16,7 @@ void base_matrix_mult(double* a, double* b, double* c, int n){
     }
 }
 void base_matrix_mult_omp(double* a, double* b, double* c, int n){
-    #pragma omp parallel for shared(a, b, c, n_a, m_b, elements_in_vector)
+    #pragma omp parallel for shared(a, b, c, n)
         for(int i=0;i<n;i++){ // i-th row in a
             for(int j=0;j<n;j++){ // j-th column in b
                 for(int k=0;k<n; k++){ // k-th element in vector
@@ -36,7 +36,7 @@ void b_transposed_matrix_mult(double* a, double* b, double* c, int n){
     }
 }
 void b_transposed_matrix_mult_omp(double* a, double* b, double* c, int n){
-    #pragma omp parallel for shared(a, b, c, n_a, m_b, elements_in_vector)
+    #pragma omp parallel for shared(a, b, c, n)
         for(int i=0;i<n;i++){
             for(int j=0;j<n;j++){
                 for(int k=0;k<n;k++){
@@ -44,6 +44,14 @@ void b_transposed_matrix_mult_omp(double* a, double* b, double* c, int n){
                 }
             }
         }
+}
+void transposed_matrix_mult(double* a, double* b, double* c, int n){
+    double* bT = get_transposed_matrix(b, n);
+    b_transposed_matrix_mult(a, bT, c, n);
+}
+void transposed_matrix_mult_omp(double* a, double* b, double* c, int n){
+    double* bT = get_transposed_matrix(b, n);
+    b_transposed_matrix_mult_omp(a, bT, c, n);
 }
 
 void transpose_matrix_in_place(double* matr, int n){

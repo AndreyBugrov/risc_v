@@ -1,18 +1,32 @@
 #include "test.hpp"
 
-void print_test_result(std::vector<double> comparing_output, double seconds){
+bool print_test_result(std::vector<double> comparing_output, double seconds){
+    bool passed;
     if(comparing_output[0]>0){
         std::cout<<"FAILED!\n";
-        std::cout<<"\tNumber of unequal elements: "<<comparing_output[0]<<"\n";
+        std::cout<<"\tPercentage of unequal elements: "<<comparing_output[0]<<"\n";
         std::cout<<"\tMinimum difference: "<<comparing_output[1]<<"\n";
         std::cout<<"\tMaximum difference: "<<comparing_output[2]<<"\n";
+        passed = false;
     }else{
         std::cout<<"PASSED!\n";
+        passed = true;
     }
     std::cout<<"\tTime: "<<seconds<<" seconds\n";
+    std::cout<<"---------------------------------\n";
+    return passed;
+}
+void print_test_statistics(int passed_num, int failed_num){
+    int all = passed_num + failed_num;
+    double pased_percent = passed_num / double(all) * 100.0;
+    double failed_percent = failed_num / double(all) * 100.0;
+    std::cout<<"SUMMARY\n";
+    std::cout<<"\tTest number: "<<all<<"\n";
+    std::cout<<"\tPassed:      "<<passed_num<<" ("<<pased_percent<<"%)\n";
+    std::cout<<"\tFailed:      "<<failed_num<<"  ("<<failed_percent<<"%)\n";
 }
 
-void multiplication_test(std::string test_name, mult_func matrix_mult_function, test_type type){
+bool multiplication_test(std::string test_name, mult_func matrix_mult_function, test_type type){
     std::cout<<"TEST:\t"<<test_name<<"\n";
     const auto start_my_mult{std::chrono::steady_clock::now()};
 
@@ -64,64 +78,15 @@ void multiplication_test(std::string test_name, mult_func matrix_mult_function, 
 
     matrix_mult_function(a, b, c, n);
     cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans, n, n, n, 1.0, a, n, b, n, 0.0, base_c, n);
+    std::vector<double> comparison_output = get_unequal_elements(base_c, c, n);
 
     delete[] a;
     delete[] b;
     delete[] c;
 
-    std::vector<double> comparison_output = get_unequal_elements(base_c, c, n);
     const auto end_my_mult{std::chrono::steady_clock::now()};
     std::chrono::duration<double> elapsed_seconds = end_my_mult - start_my_mult;
-    print_test_result(comparison_output, elapsed_seconds.count());
-}
-
-void transpose_test(std::string test_name, test_type type){
-    std::cout<<"TEST:\t"<<test_name<<"\n";
-    const auto start_my_transpose{std::chrono::steady_clock::now()};
-
-    int min_random_length;
-    int max_random_length;
-    if(type==test_type::big){
-        min_random_length = 128;
-        max_random_length = 256+1;
-    }else{
-        min_random_length = 16;
-        max_random_length = 64+1;
-    }
-
-    std::random_device rd;
-    std::mt19937 engine(rd());
-    std::uniform_int_distribution<std::mt19937::result_type> gen(min_random_length, max_random_length);
-
-    int n = gen(engine);
-    double* matrix, *base_matrix;
-    matrix = new double[n*n];
-    base_matrix = new double[n*n];
-
-    switch (type)
-    {
-    case test_type::zero:
-        generate_zero_matrix(matrix, n);
-        break;
-    case test_type::identity:
-        generate_identity_matrix(matrix, n);
-    default:
-        generate_rand_matrix(matrix, n, -100.0, 100.0);
-        break;
-    }
-
-    std::memcpy(base_matrix, matrix, n*n*sizeof(double));
-
-    matrix = get_transposed_matrix(matrix, n);
-
-     ///////////////////////////////////////////
-    // TO DO: use cblas function and compare //
-   ///////////////////////////////////////////
-
-    std::vector<double> comparison_output = get_unequal_elements(base_matrix, matrix, n*n);
-    const auto end_my_transpose{std::chrono::steady_clock::now()};
-    std::chrono::duration<double> elapsed_seconds = end_my_transpose - start_my_transpose;
-    print_test_result(comparison_output, elapsed_seconds.count());
+    return print_test_result(comparison_output, elapsed_seconds.count());
 }
 
 std::vector<double> get_unequal_elements(double* base, double* current, int size){
