@@ -4,7 +4,7 @@ bool print_test_result(std::vector<double> comparing_output, double seconds){
     bool passed;
     if(comparing_output[0]>0){
         std::cout<<"FAILED!\n";
-        std::cout<<"\tPercentage of unequal elements: "<<comparing_output[0]<<"\n";
+        std::cout<<"\tPercentage of unequal elements: "<<comparing_output[0]*100.0<<"\n";
         std::cout<<"\tMinimum difference: "<<comparing_output[1]<<"\n";
         std::cout<<"\tMaximum difference: "<<comparing_output[2]<<"\n";
         passed = false;
