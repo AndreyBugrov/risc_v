@@ -42,13 +42,12 @@ int main(int argc, char* argv[]){
         std::chrono::duration<double> elapsed_dgemm = end_dgemm - start_dgemm;
         dgemm_seconds[i] = elapsed_dgemm.count();
     }
-    //print_result(total_seconds, exp_num);
-    //print_result(dgemm_seconds, exp_num);
+
+    print_experiment_result(dgemm_seconds, total_seconds, exp_num, c_blas, c, n*n, is_automatic);
 
     delete[] a;
     delete[] b;
     delete[] c;
 
-    print_experiment_result(dgemm_seconds, total_seconds, exp_num, is_automatic);
     return 0;
 }

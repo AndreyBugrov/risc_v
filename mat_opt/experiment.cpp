@@ -28,25 +28,34 @@ void print_result(double* total_seconds, int exp_num){
   }
 }
 
-void print_experiment_result(double* cblas_seconds, double* current_seconds, int experiment_num, bool is_automatic) {
+void print_experiment_result(double* cblas_seconds, double* current_seconds, int experiment_num, double* base, double* current, int size, bool is_automatic) {
   double cblas_seconds_mean = std::accumulate(cblas_seconds, cblas_seconds+experiment_num, 0.0, std::plus<double>()) / experiment_num;
   double current_seconds_mean = std::accumulate(current_seconds, current_seconds+experiment_num, 0.0, std::plus<double>()) / experiment_num;
+  double max_difference = 0.0;
+  double difference;
+  for(int i=0;i<size;i++){
+    difference = abs(base[i]-current[i]);
+    if(difference>max_difference){
+        max_difference = difference;
+    }
+  }
   if(is_automatic){
-      std::cout << cblas_seconds_mean << " " << current_seconds_mean << " " << current_seconds_mean / cblas_seconds_mean << "\n";
+      std::cout << cblas_seconds_mean << " " << current_seconds_mean << " " << current_seconds_mean / cblas_seconds_mean << " " << max_difference << "\n";
   }else{
-    std::cout<<"OpenBLAS time: " << cblas_seconds_mean<<"\n";
-    std::cout<<"Current time:  " << current_seconds_mean<<"\n";
-    std::cout<<"Ratio:         "<<current_seconds_mean / cblas_seconds_mean<<"\n";
+    std::cout<<"OpenBLAS time:  " << cblas_seconds_mean<<"\n";
+    std::cout<<"Current time:   " << current_seconds_mean<<"\n";
+    std::cout<<"Ratio:          " << current_seconds_mean / cblas_seconds_mean<<"\n";
+    std::cout<<"Max difference: " << max_difference <<"\n";
   }
 }
 
 mult_func get_multiplication_function(std::string function_name){
     const int names_num = 6;
-    std::string all_function_names[names_num]={"simple", "simple_omp", "transposed", "transposed_omp", "opt_block", "block_transposed"};
+    std::string all_function_names[names_num]={"base", "base_omp", "transposed", "transposed_omp", "opt_block", "block_transposed"};
     const std::map<std::string, mult_func> func_map={{all_function_names[0], base_matrix_mult},
     {all_function_names[1], base_matrix_mult_omp},
-    {all_function_names[2], b_transposed_matrix_mult},
-    {all_function_names[3], b_transposed_matrix_mult_omp},
+    {all_function_names[2], transposed_matrix_mult},
+    {all_function_names[3], transposed_matrix_mult_omp},
     {all_function_names[4], optimal_block_matrix_mult},
     {all_function_names[5], b_transposed_block_matrix_mult}
     };

@@ -12,6 +12,6 @@
 int get_max_value_index(double* vec, int n);
 void print_result(double* total_seconds, int exp_num);
 // print mean of cblas_seconds, current_seconds and their ratio
-void print_experiment_result(double* cblas_seconds, double* current_seconds, int experiment_num, bool is_automatic);
+void print_experiment_result(double* cblas_seconds, double* current_seconds, int experiment_num, double* base, double* current, int size, bool is_automatic);
 
 mult_func get_multiplication_function(std::string function_name);
