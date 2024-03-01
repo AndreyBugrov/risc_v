@@ -1,33 +1,5 @@
 #include "experiment.hpp"
 
-int get_max_value_index(double* vec, int n){
-    double max_value = vec[0];
-    int max_index = 0;
-    for(int i=1;i<n;i++){
-        if(max_value<vec[i]){
-            max_value = vec[i];
-            max_index = i;
-        }
-    }
-    return max_index;
-}
-
-void print_result(double* total_seconds, int exp_num){
-  if(exp_num==1){
-    std::cout<<total_seconds[0]<<"\n";
-  }
-  else{
-    int max_index = get_max_value_index(total_seconds, exp_num);
-    double seconds_without_outliers = 0;
-    for(int i=0;i<exp_num;i++){
-        if(i!=max_index){
-            seconds_without_outliers+=total_seconds[i];
-        }
-    }
-    std::cout<<seconds_without_outliers / (exp_num-1)<<"\n";
-  }
-}
-
 void print_experiment_result(double* cblas_seconds, double* current_seconds, int experiment_num, double* base, double* current, int size, bool is_automatic) {
   double cblas_seconds_mean = std::accumulate(cblas_seconds, cblas_seconds+experiment_num, 0.0, std::plus<double>()) / experiment_num;
   double current_seconds_mean = std::accumulate(current_seconds, current_seconds+experiment_num, 0.0, std::plus<double>()) / experiment_num;
@@ -45,7 +17,7 @@ void print_experiment_result(double* cblas_seconds, double* current_seconds, int
     std::cout<<"OpenBLAS time:  " << cblas_seconds_mean<<"\n";
     std::cout<<"Current time:   " << current_seconds_mean<<"\n";
     std::cout<<"Ratio:          " << current_seconds_mean / cblas_seconds_mean<<"\n";
-    std::cout<<"Max difference: " << max_difference <<"\n";
+    std::cout<<"Max inaccuracy: " << max_difference <<"\n";
   }
 }
 
