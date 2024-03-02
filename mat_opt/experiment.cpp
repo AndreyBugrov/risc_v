@@ -12,7 +12,7 @@ void print_experiment_result(double* cblas_seconds, double* current_seconds, int
     }
   }
   if(is_automatic){
-      std::cout << cblas_seconds_mean << " " << current_seconds_mean << " " << current_seconds_mean / cblas_seconds_mean << " " << max_difference << "\n";
+      std::cout << cblas_seconds_mean << "\n" << current_seconds_mean << "\n" << current_seconds_mean / cblas_seconds_mean << "\n" << max_difference << "\n";
   }else{
     std::cout<<"OpenBLAS time:  " << cblas_seconds_mean<<"\n";
     std::cout<<"Current time:   " << current_seconds_mean<<"\n";
