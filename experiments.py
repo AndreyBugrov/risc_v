@@ -39,13 +39,13 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization")
-    parser.add_argument('-f', '--function-name', choices=['base', 'base_omp', 'transposed', 'transposed_omp'], 
+    parser.add_argument('-f', '--function-name', choices=['base', 'base_omp', 'base_omp_simd', 'transposed', 'transposed_omp'], 
                         help="\tShort name for matrix multiplication function. ", required=True)
     parser.add_argument('-s', "--matrix-sizes", help="Matrix sizes: 1) min n 2) max n 3) step", type=int, nargs=3)
     parser.add_argument('-l', '--opt-level', help="Optimization level in the execution file",
                         choices=['release', 'opt', 'fast'], default='opt')
     parser.add_argument('-n', '--exp-num', help="Number of experiments with equal parameters", type=int,required=True)
-    parser.add_argument('-d', '--device-name', help="RISC-V device name", choices=["sf2", "leeche", "mango", "unknown"])
+    parser.add_argument('-d', '--device-name', help="RISC-V device name", choices=["sf2", "leeche", "mango", "kendryte", "x86"])
     args = parser.parse_args()
     function_name = args.function_name
     matrix_sizes = args.matrix_sizes
@@ -54,6 +54,10 @@ if __name__ == '__main__':
     device_name = args.device_name
     if int(exp_num) < 1:
         error_message("choose at least one experiment!")
+    if matrix_sizes[2] <= 0:
+        error_message("step should be more than 0!")
+    if matrix_sizes[0] > matrix_sizes[1]:
+        error_message("min_n should be less or equal max_n!")
 
     type_handlings = {'release': '-O2', 'opt': '-O3', 'fast': '-Ofast'}
     

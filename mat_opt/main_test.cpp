@@ -1,9 +1,11 @@
 #include "test.hpp"
 
 int main(int argc, char* argv[]){
+    const auto start_tests{std::chrono::steady_clock::now()};
     std::vector<std::pair<std::string, mult_func>> test_mult_funcs={
         {"base multiplication", base_matrix_mult}, 
         {"base multiplication (omp)", base_matrix_mult_omp},
+        {"base multiplication (omp+simd)", base_matrix_mult_omp_simd},
         {"multiplication with transposed matrix", transposed_matrix_mult},
         {"multiplication with transposed matrix (omp)", transposed_matrix_mult_omp}};
     std::map<int, std::string> test_type_names={{0, "zero"}, {1, "identity"}, {2, "equal"}, {3, "random"}, {4, "big"}};
@@ -18,5 +20,7 @@ int main(int argc, char* argv[]){
             }
         }
     }
-    print_test_statistics(passed_counter, failed_counter);
+    const auto end_tests{std::chrono::steady_clock::now()};
+    std::chrono::duration<double> elapsed_seconds = end_tests - start_tests;
+    print_test_statistics(passed_counter, failed_counter, elapsed_seconds.count());
 }

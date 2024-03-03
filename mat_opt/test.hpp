@@ -33,4 +33,4 @@ bool multiplication_test(std::string test_name, mult_func matrix_mult_function, 
 std::vector<double> get_unequal_elements(double* base, double* current, int size);
 // return is test passed or not
 bool print_test_result(std::vector<double> comparison_output, double seconds);
-void print_test_statistics(int passed_num, int failed_num);
+void print_test_statistics(int passed_num, int failed_num, double seconds);

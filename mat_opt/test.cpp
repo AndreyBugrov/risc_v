@@ -16,7 +16,7 @@ bool print_test_result(std::vector<double> comparing_output, double seconds){
     std::cout<<"---------------------------------\n";
     return passed;
 }
-void print_test_statistics(int passed_num, int failed_num){
+void print_test_statistics(int passed_num, int failed_num, double seconds){
     int all = passed_num + failed_num;
     double pased_percent = passed_num / double(all) * 100.0;
     double failed_percent = failed_num / double(all) * 100.0;
@@ -24,6 +24,7 @@ void print_test_statistics(int passed_num, int failed_num){
     std::cout<<"\tTest number: "<<all<<"\n";
     std::cout<<"\tPassed:      "<<passed_num<<" ("<<pased_percent<<"%)\n";
     std::cout<<"\tFailed:      "<<failed_num<<"  ("<<failed_percent<<"%)\n";
+    std::cout<<"\tFull time:   "<<seconds<<"\n";
 }
 
 bool multiplication_test(std::string test_name, mult_func matrix_mult_function, test_type type){
