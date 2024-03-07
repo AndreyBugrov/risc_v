@@ -21,8 +21,6 @@ void base_block_matrix_mult(double* __restrict__ a, double* __restrict__ b, doub
 void optimal_block_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){}
 void b_transposed_block_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){}
 
-void strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){}
-
 void base_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     for(int i=0;i<n;i++){ // i-th row in a
         for(int j=0;j<n;j++){ // j-th column in b
@@ -42,18 +40,6 @@ void base_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double
             }
         }
 }
-void base_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
-    #pragma omp parallel for shared(a, b, c, n)
-    for(int i=0;i<n;i++){ // i-th row in a
-        for(int j=0;j<n;j++){ // j-th column in b
-            #pragma omp simd
-                for(int k=0;k<n; k++){ // k-th element in vector
-                    c[i*n+j]+=a[i*n+k]*b[k*n+j];
-                }
-        }
-    }
-}
-
 void b_transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     for(int i=0;i<n;i++){
         for(int j=0;j<n;j++){
@@ -73,6 +59,30 @@ void b_transposed_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b
             }
         }
 }
+// void b_transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+//     #pragma omp parallel
+//     {
+//         #pragma omp for simd
+//             for(int i=0;i<n;i++){
+//                 for(int k=0;k<n;k++){
+//                     for(int j=0;j<n;j++){
+//                         c[i*n+j] += a[i*n+k]*b[j*n+k];
+//                     }
+//                 }
+//             }
+//     }
+
+// }
+void b_transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+        #pragma omp  simd
+            for(int i=0;i<n;i++){
+                for(int k=0;k<n;k++){
+                    for(int j=0;j<n;j++){
+                        c[i*n+j] += a[i*n+k]*b[j*n+k];
+                    }
+                }
+            }
+}
 void transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     double* bT = get_transposed_matrix(b, n);
     b_transposed_matrix_mult(a, bT, c, n);
@@ -80,6 +90,31 @@ void transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, doub
 void transposed_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     double* bT = get_transposed_matrix(b, n);
     b_transposed_matrix_mult_omp(a, bT, c, n);
+}
+void transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    double* bT = get_transposed_matrix(b, n);
+    b_transposed_matrix_mult_omp_simd(a, bT, c, n);
+}
+
+void strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    // const int division_limit = 32;
+    // std::vector<double*, double*> increased = increase_matrixes(a, b, n);
+    // split_matrices()
+}
+
+void matrix_add(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            c[i*n+j]=a[i*n+j]+b[i*n+j];
+        }
+    }
+}
+void matrix_sub(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            c[i*n+j]=a[i*n+j]-b[i*n+j];
+        }
+    }
 }
 
 void transpose_matrix_in_place(double* matr, int n){
@@ -109,3 +144,13 @@ void blockcpy(double* __restrict__ src, double* __restrict__ dest, int n, int bl
         }
     }
 }
+// std::vector<double*, double*> increase_matrixes(double* __restrict__ a, double* __restrict__ b, int n){
+//     int inc_dim = log2(n);
+//     double* inc_a = new double[inc_dim*inc_dim];
+//     double* inc_b = new double[inc_dim*inc_dim];
+//     generate_zero_matrix(inc_a, inc_dim);
+//     generate_zero_matrix(inc_b, inc_dim);
+//     std::memcpy(inc_a, a, n*n*sizeof(double));
+//     std::memcpy(inc_b, b, n*n*sizeof(double));
+//     return std::vector<double*, double*>{inc_a, inc_b};
+// }

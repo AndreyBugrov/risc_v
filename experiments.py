@@ -14,7 +14,7 @@ def error_message(msg: str):
 def compile_source(source_file_list: list[str], bin_path: str, optimization_flag: str):
     args = 'g++ ' + ' '.join(source_file_list) + ' -o ' + bin_path + ' ' + optimization_flag + ' -fopenmp' + ' -I ' 'open_blas/ ' + '-lopenblas'
     cmd = shlex.split(args)
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
 
 
 def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], exp_num: int, device_type: str):
@@ -39,7 +39,7 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization")
-    parser.add_argument('-f', '--function-name', choices=['base', 'base_omp', 'base_omp_simd', 'transposed', 'transposed_omp'], 
+    parser.add_argument('-f', '--function-name', choices=['all', 'base', 'base_omp', 'base_omp_simd', 'tr', 'tr_omp', 'tr_omp_simd'], 
                         help="\tShort name for matrix multiplication function. ", required=True)
     parser.add_argument('-s', "--matrix-sizes", help="Matrix sizes: 1) min n 2) max n 3) step", type=int, nargs=3)
     parser.add_argument('-l', '--opt-level', help="Optimization level in the execution file",
@@ -64,13 +64,18 @@ if __name__ == '__main__':
     root_source_dir = 'mat_opt'
     root_bin_dir = 'bin'
 
-    bin_file_name = function_name + '_' + opt_level
-    bin_path = os.path.join(root_bin_dir, bin_file_name)
-
-    source_file_list = [os.path.join(root_source_dir, 'common.cpp'),
-                        os.path.join(root_source_dir, 'multiplication.cpp'),
-                        os.path.join(root_source_dir, 'experiment.cpp'),
-                        os.path.join(root_source_dir, 'main_experiment.cpp')]
-
-    compile_source(source_file_list, bin_path, type_handlings[opt_level])
-    run_matrix_exp(bin_path, function_name, matrix_sizes, exp_num, device_name)
+    if function_name != 'all':
+        function_name_list = [function_name]
+    else:
+        function_name_list = ['base', 'base_omp', 'base_omp_simd', 'tr', 'tr_omp', 'tr_omp_simd']
+    
+    for function_item in function_name_list:
+        bin_file_name = function_item + '_' + opt_level
+        bin_path = os.path.join(root_bin_dir, bin_file_name)
+        source_file_list = [os.path.join(root_source_dir, 'common.cpp'),
+                            os.path.join(root_source_dir, 'multiplication.cpp'),
+                            os.path.join(root_source_dir, 'experiment.cpp'),
+                            os.path.join(root_source_dir, 'main_experiment.cpp')]
+        compile_source(source_file_list, bin_path, type_handlings[opt_level])
+        run_matrix_exp(bin_path, function_item, matrix_sizes, exp_num, device_name)
+        print(f"\"{function_item}\" function experiment is conducted")

@@ -5,9 +5,9 @@ int main(int argc, char* argv[]){
     std::vector<std::pair<std::string, mult_func>> test_mult_funcs={
         {"base multiplication", base_matrix_mult}, 
         {"base multiplication (omp)", base_matrix_mult_omp},
-        {"base multiplication (omp+simd)", base_matrix_mult_omp_simd},
         {"multiplication with transposed matrix", transposed_matrix_mult},
-        {"multiplication with transposed matrix (omp)", transposed_matrix_mult_omp}};
+        {"multiplication with transposed matrix (omp)", transposed_matrix_mult_omp},
+        {"multiplication with transposed matrix (omp+simd)", transposed_matrix_mult_omp_simd}};
     std::map<int, std::string> test_type_names={{0, "zero"}, {1, "identity"}, {2, "equal"}, {3, "random"}, {4, "big"}};
     int passed_counter = 0;
     int failed_counter = 0;
