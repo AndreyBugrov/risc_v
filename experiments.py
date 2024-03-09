@@ -17,6 +17,14 @@ def compile_source(source_file_list: list[str], bin_path: str, optimization_flag
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
 
 
+def set_min_frequency():
+    ...
+
+
+def get_avaliable_frequencies():
+    ...
+
+
 def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], exp_num: int, device_type: str):
     min_n = matrix_sizes[0]
     max_n = matrix_sizes[1] + 1
@@ -39,8 +47,11 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization")
-    parser.add_argument('-f', '--function-name', choices=['all', 'base', 'base_omp', 'base_omp_simd', 'tr', 'tr_omp', 'tr_omp_simd'], 
-                        help="\tShort name for matrix multiplication function. ", required=True)
+    parser.add_argument('-f', '--function-name', choices=['all', 'omp', 'single-thread', 'base', 'base_omp', 
+                                                          'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd'], 
+                        help="\tShort name for matrix multiplication function."
+                        "\n'all': all function, omp: omp functions only, single-thread: single-thread functions only",
+                        required=True)
     parser.add_argument('-s', "--matrix-sizes", help="Matrix sizes: 1) min n 2) max n 3) step", type=int, nargs=3)
     parser.add_argument('-l', '--opt-level', help="Optimization level in the execution file",
                         choices=['release', 'opt', 'fast'], default='opt')
@@ -64,10 +75,14 @@ if __name__ == '__main__':
     root_source_dir = 'mat_opt'
     root_bin_dir = 'bin'
 
-    if function_name != 'all':
-        function_name_list = [function_name]
+    if function_name == 'all':
+        function_name_list = ['base', 'base_omp', 'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd']
+    elif function_name == 'omp':
+        function_name_list = ['base_omp', 'row_omp', 'tr_omp', 'tr_omp_simd']
+    elif function_name == 'single-thread':
+        function_name_list = ['base', 'row', 'tr']
     else:
-        function_name_list = ['base', 'base_omp', 'base_omp_simd', 'tr', 'tr_omp', 'tr_omp_simd']
+        function_name_list = [function_name]
     
     for function_item in function_name_list:
         bin_file_name = function_item + '_' + opt_level

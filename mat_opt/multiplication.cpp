@@ -40,6 +40,25 @@ void base_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double
             }
         }
 }
+void row_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            for(int k=0;k<n;k++){
+                c[i*n+k]+=a[i*n+j]*b[j*n+k];
+            }
+        }
+    }
+}
+void row_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    #pragma omp parallel for shared(a, b, c, n)
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                for(int k=0;k<n;k++){
+                    c[i*n+k]+=a[i*n+j]*b[j*n+k];
+                }
+            }
+        }
+}
 void b_transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     for(int i=0;i<n;i++){
         for(int j=0;j<n;j++){
@@ -59,6 +78,17 @@ void b_transposed_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b
             }
         }
 }
+void b_transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    #pragma omp parallel for shared(a, b, c, n)
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                c[i*n+j]=std::inner_product(a, a+i*n, b, 0, std::multiplies<double>(), std::plus<double>());
+                // for(int k=0;k<n;k++){
+                //     c[i*n+j] += a[i*n+k]*b[j*n+k];
+                // }
+            }
+        }
+}
 // void b_transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
 //     #pragma omp parallel
 //     {
@@ -73,16 +103,16 @@ void b_transposed_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b
 //     }
 
 // }
-void b_transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
-        #pragma omp  simd
-            for(int i=0;i<n;i++){
-                for(int k=0;k<n;k++){
-                    for(int j=0;j<n;j++){
-                        c[i*n+j] += a[i*n+k]*b[j*n+k];
-                    }
-                }
-            }
-}
+// void b_transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+//         #pragma omp  simd
+//             for(int i=0;i<n;i++){
+//                 for(int k=0;k<n;k++){
+//                     for(int j=0;j<n;j++){
+//                         c[i*n+j] += a[i*n+k]*b[j*n+k];
+//                     }
+//                 }
+//             }
+// }
 void transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     double* bT = get_transposed_matrix(b, n);
     b_transposed_matrix_mult(a, bT, c, n);
@@ -96,26 +126,61 @@ void transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict_
     b_transposed_matrix_mult_omp_simd(a, bT, c, n);
 }
 
-void strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
-    // const int division_limit = 32;
-    // std::vector<double*, double*> increased = increase_matrixes(a, b, n);
-    // split_matrices()
+void strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){  
+    double* inc_a, *inc_b;
+
+    int inc_n = increase_matrices(a, inc_a, b, inc_b, n);
+    recursive_strassen_part(inc_a, inc_b, c, n);
+}
+void recursive_strassen_part(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    if(n<65){
+        row_matrix_mult_omp(a, b, c, n);
+    }
+    n >>= 1;
+    double *a11 = new double[n*n], *a22 = new double[n*n], *a12 = new double[n*n], *a21 = new double[n*n];
+    double *b11 = new double[n*n], *b12 = new double[n*n], *b21 = new double[n*n], *b22 = new double[n*n];
+    split_matrices(a, a11, a12, a21, a22, n);
+    split_matrices(b, b11, b12, b21, b22, n);
+    double *p1, *p2, *p3, *p4, *p5, *p6, *p7;
+    
+
 }
 
-void matrix_add(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
-    for(int i=0;i<n;i++){
-        for(int j=0;j<n;j++){
-            c[i*n+j]=a[i*n+j]+b[i*n+j];
-        }
-    }
-}
-void matrix_sub(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
-    for(int i=0;i<n;i++){
-        for(int j=0;j<n;j++){
-            c[i*n+j]=a[i*n+j]-b[i*n+j];
-        }
-    }
-}
+//     private static int[][] multiStrassen(int[][] a, int[][] b, int n) {
+//     if (n <= 64) {
+//         return multiply(a, b);
+//     }
+
+//     n = n >> 1;
+
+//     int[][] a11 = new int[n][n];
+//     int[][] a12 = new int[n][n];
+//     int[][] a21 = new int[n][n];
+//     int[][] a22 = new int[n][n];
+
+//     int[][] b11 = new int[n][n];
+//     int[][] b12 = new int[n][n];
+//     int[][] b21 = new int[n][n];
+//     int[][] b22 = new int[n][n];
+
+//     splitMatrix(a, a11, a12, a21, a22);
+//     splitMatrix(b, b11, b12, b21, b22);
+
+//     int[][] p1 = multiStrassen(summation(a11, a22), summation(b11, b22), n);
+//     int[][] p2 = multiStrassen(summation(a21, a22), b11, n);
+//     int[][] p3 = multiStrassen(a11, subtraction(b12, b22), n);
+//     int[][] p4 = multiStrassen(a22, subtraction(b21, b11), n);
+//     int[][] p5 = multiStrassen(summation(a11, a12), b22, n);
+//     int[][] p6 = multiStrassen(subtraction(a21, a11), summation(b11, b12), n);
+//     int[][] p7 = multiStrassen(subtraction(a12, a22), summation(b21, b22), n);
+
+//     int[][] c11 = summation(summation(p1, p4), subtraction(p7, p5));
+//     int[][] c12 = summation(p3, p5);
+//     int[][] c21 = summation(p2, p4);
+//     int[][] c22 = summation(subtraction(p1, p2), summation(p3, p6));
+
+//     return collectMatrix(c11, c12, c21, c22);
+// }
 
 void transpose_matrix_in_place(double* matr, int n){
     for(int i=0;i<n;i++){
@@ -144,13 +209,57 @@ void blockcpy(double* __restrict__ src, double* __restrict__ dest, int n, int bl
         }
     }
 }
-// std::vector<double*, double*> increase_matrixes(double* __restrict__ a, double* __restrict__ b, int n){
-//     int inc_dim = log2(n);
-//     double* inc_a = new double[inc_dim*inc_dim];
-//     double* inc_b = new double[inc_dim*inc_dim];
-//     generate_zero_matrix(inc_a, inc_dim);
-//     generate_zero_matrix(inc_b, inc_dim);
-//     std::memcpy(inc_a, a, n*n*sizeof(double));
-//     std::memcpy(inc_b, b, n*n*sizeof(double));
-//     return std::vector<double*, double*>{inc_a, inc_b};
-// }
+
+int increase_matrices(double* __restrict__ a, double* __restrict__ inc_a, double* __restrict__ b, double* __restrict__ inc_b, int n){
+    int inc_dim = log2(n);
+    if(double(inc_dim)<log2(n)){
+        inc_dim++;
+    }
+
+    inc_a = new double[inc_dim*inc_dim];
+    inc_b = new double[inc_dim*inc_dim];
+    
+    generate_zero_matrix(inc_a, inc_dim);
+    generate_zero_matrix(inc_b, inc_dim);
+    for(int i=0;i<n;i++){
+        std::memcpy(inc_a+i*inc_dim, a+i*n, n*sizeof(double));
+        std::memcpy(inc_b+i*inc_dim, b+i*n, n*sizeof(double));
+    }
+    return inc_dim;
+}
+void split_matrices(double* __restrict__ a, double* __restrict__ a11, double* __restrict__ a12,double* __restrict__ a21, double* __restrict__ a22, int n){
+    const int half_n = n>>1;
+    for(int i=0;i<half_n;i++){
+        std::memcpy(a11+i*half_n, a+i*n, half_n);
+        std::memcpy(a12+i*half_n, a+i*(n+half_n), half_n);
+    }
+    for(int i=half_n;i<n;i++){
+        std::memcpy(a21+i*half_n, a+i*n, half_n);
+        std::memcpy(a22+i*half_n, a+i*(n+half_n), half_n);
+    }
+}
+void collect_matrices(double* __restrict__ a, double* __restrict__ a11, double* __restrict__ a12,double* __restrict__ a21, double* __restrict__ a22, int n){
+    const int half_n = n>>1;
+    for(int i=0;i<half_n;i++){
+        std::memcpy( a+i*n, a11+i*half_n, half_n);
+        std::memcpy(a+i*(n+half_n), a12+i*half_n, half_n);
+    }
+    for(int i=half_n;i<n;i++){
+        std::memcpy(a+i*n, a21+i*half_n, half_n);
+        std::memcpy(a+i*(n+half_n), a22+i*half_n, half_n);
+    }
+}
+void matrix_add(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            c[i*n+j]=a[i*n+j]+b[i*n+j];
+        }
+    }
+}
+void matrix_sub(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            c[i*n+j]=a[i*n+j]-b[i*n+j];
+        }
+    }
+}
