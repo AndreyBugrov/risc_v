@@ -28,17 +28,17 @@ void print_test_statistics(int passed_num, int failed_num, double seconds){
 }
 
 bool multiplication_test(std::string test_name, mult_func matrix_mult_function, test_type type){
-    std::cout<<"TEST:\t"<<test_name<<"\n";
+    std::cout<<"TEST:\t"<<test_name;
     const auto start_my_mult{std::chrono::steady_clock::now()};
 
     int min_random_length;
     int max_random_length;
     if(type==test_type::big){
         min_random_length = 128;
-        max_random_length = 256+1;
+        max_random_length = 256; // right end is included
     }else{
         min_random_length = 16;
-        max_random_length = 64+1;
+        max_random_length = 64; // right end is included
     }
 
     std::random_device rd;
@@ -46,6 +46,8 @@ bool multiplication_test(std::string test_name, mult_func matrix_mult_function, 
     std::uniform_int_distribution<std::mt19937::result_type> gen(min_random_length, max_random_length);
 
     int n = gen(engine);
+
+    std::cout<<" (n = "<<n<<")\n";
 
     double* a, *b, *c, *base_c;
 

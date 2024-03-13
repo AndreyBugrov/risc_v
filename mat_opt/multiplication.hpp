@@ -6,7 +6,6 @@
 #include <cstring>  // std::memcpy in transposition & increase_matrixes
 #include <cmath>    // log2 in base_block_matrix_mult
 #include <vector>   // std:vector in increase_matrixes
-#include <numeric>  // std::inner_product in row_matrix_mult
 
 #include "common.hpp" // generate_zero_matrix in increase_matrixes
 
@@ -39,8 +38,11 @@ double* get_transposed_matrix(double* matr, int n);
 void blockcpy(double* __restrict__ src, double* __restrict__ dest, int n, int block_n);
 
 //make matrix dimension lengths power of 2, return new matrix dimension length
-int increase_matrices(double* __restrict__ a, double* __restrict__ inc_a, double* __restrict__ b, double* __restrict__ inc_b, int n);
+int increase_matrices(double* __restrict__ a, double* __restrict__ inc_a, double* __restrict__ b, double* __restrict__ inc_b, double* __restrict__ c, double* __restrict__  inc_c, int n);
+void decrease_matrix(double* __restrict__ a, double* __restrict__ inc_a, int n, int inc_n);
+// n means n for a
 void split_matrices(double* __restrict__ a, double* __restrict__ a11, double* __restrict__ a12,double* __restrict__ a21, double* __restrict__ a22, int n);
+// n means n for a
 void collect_matrices(double* __restrict__ a, double* __restrict__ a11, double* __restrict__ a12,double* __restrict__ a21, double* __restrict__ a22, int n);
 void matrix_add(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void matrix_sub(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);

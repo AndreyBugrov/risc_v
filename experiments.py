@@ -14,25 +14,41 @@ def error_message(msg: str):
 def compile_source(source_file_list: list[str], bin_path: str, optimization_flag: str):
     args = 'g++ ' + ' '.join(source_file_list) + ' -o ' + bin_path + ' ' + optimization_flag + ' -fopenmp' + ' -I ' 'open_blas/ ' + '-lopenblas'
     cmd = shlex.split(args)
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
+    subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
 
 
-def set_min_frequency():
-    ...
+def get_available_cores():
+    with open('/proc/cpuinfo', 'r') as f:
+        return [int(line[:-1].split(': ')[1]) for line in f.readlines() if line.startswith('processor')]
 
 
-def get_avaliable_frequencies():
-    ...
+def get_min_max_frequencies():
+    """
+    Returns:
+        min and max frequencies
+    """
+    with open(f'/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies', 'r') as f:
+        avaliable_frequencies = [int(num) for num in f.readline()[:-1].split()]
+    return min(avaliable_frequencies), max(avaliable_frequencies)
+
+
+def set_min_core_frequency_limit(frequency, core_num):
+    line = f"sudo sh -c 'echo {frequency} > /sys/devices/system/cpu/cpu{core_num}/cpufreq/scaling_min_freq'"
+    subprocess.Popen(command_list=line, shell=True).communicate()
 
 
 def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], exp_num: int, device_type: str):
     min_n = matrix_sizes[0]
     max_n = matrix_sizes[1] + 1
     step = matrix_sizes[2]
-    csv_file_name = function_name + '_' + device_type
+    core_nums = get_available_cores()
+    frequencies = get_min_max_frequencies()
+    csv_file_name = function_name + '_' + device_type + '_' + str(frequencies[1] / 1000) + '_GHz'
     with open(os.path.join('csv_results', csv_file_name), 'w', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(['Row size','OpenBLAS', 'Current', 'Ratio', 'Inaccuracy'])
+        for core in core_nums:
+            set_min_core_frequency_limit(frequencies[1], core)
         for i in range(min_n, max_n, step):
             num = str(i)
             args = f"{bin_path} a {function_name} {num} {exp_num}"
@@ -43,6 +59,8 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
             row = result.split(';')
             row.insert(0, num)
             writer.writerow(row)
+        for core in core_nums:
+            set_min_core_frequency_limit(frequencies[0], core)
 
 
 if __name__ == '__main__':
