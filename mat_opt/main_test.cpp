@@ -14,6 +14,16 @@ int main(int argc, char* argv[]){
     std::map<int, std::string> test_type_names={{0, "zero"}, {1, "identity"}, {2, "equal"}, {3, "random"}, {4, "big"}};
     int passed_counter = 0;
     int failed_counter = 0;
+    if (split_matrices_test(test_type::big)){
+        passed_counter++;
+    }else{
+        failed_counter++;
+    }
+    if (collect_matrices_test(test_type::big)){
+        passed_counter++;
+    }else{
+        failed_counter++;
+    }
     for(auto test_arguments : test_mult_funcs){
         for(int i=0; i<=static_cast<int>(test_type::big); i++){
             if(multiplication_test(test_arguments.first + std::string(" : "+test_type_names[i]), test_arguments.second, static_cast<test_type>(i))){
