@@ -29,10 +29,11 @@ enum class test_type{
 bool multiplication_test(std::string test_name, mult_func matrix_mult_function, test_type type);
 bool split_matrices_test(test_type type);
 bool collect_matrices_test(test_type type);
+bool matrix_alg_sum_test(std::string test_name, test_type type, bool is_add);
 
 // return two pairs: 1 - pair of unequal element number and first met different unequal element index 2 - pair of minimum and maximum difference
 // return percentage of unequal elements, minimum and maximum difference
 std::vector<double> get_unequal_elements(double* base, double* current, int size);
 // return is test passed or not
 bool print_test_result(std::vector<double> comparison_output, double seconds);
-void print_test_statistics(int passed_num, int failed_num, double seconds);
+void print_test_statistics(int passed_num, int failed_num, double seconds, std::vector<std::string> failed_test_names);

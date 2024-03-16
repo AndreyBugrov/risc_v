@@ -16,15 +16,21 @@ bool print_test_result(std::vector<double> comparing_output, double seconds){
     std::cout<<"---------------------------------\n";
     return passed;
 }
-void print_test_statistics(int passed_num, int failed_num, double seconds){
+void print_test_statistics(int passed_num, int failed_num, double seconds, std::vector<std::string> failed_test_names){
     int all = passed_num + failed_num;
-    double pased_percent = passed_num / double(all) * 100.0;
+    double passed_percent = passed_num / double(all) * 100.0;
     double failed_percent = failed_num / double(all) * 100.0;
     std::cout<<"SUMMARY\n";
     std::cout<<"\tTest number: "<<all<<"\n";
-    std::cout<<"\tPassed:      "<<passed_num<<" ("<<pased_percent<<"%)\n";
+    std::cout<<"\tPassed:      "<<passed_num<<" ("<<passed_percent<<"%)\n";
     std::cout<<"\tFailed:      "<<failed_num<<"  ("<<failed_percent<<"%)\n";
-    std::cout<<"\tFull time:   "<<seconds<<"\n";
+    std::cout<<"\tFull time:   "<<seconds<<" seconds\n";
+    if(!failed_test_names.empty()){
+        std::cout<<"FAILED TESTS:"<<"\n";
+        for(auto failed_test_name : failed_test_names){
+            std::cout<<"\t"<<failed_test_name<<"\n";
+        }
+    }
 }
 
 bool multiplication_test(std::string test_name, mult_func matrix_mult_function, test_type type){
@@ -177,6 +183,66 @@ bool collect_matrices_test(test_type type){
 
     collect_matrices(a, a11, a12, a21, a22, 2*n);
     std::vector<double> comparison_output = get_unequal_elements(identity_a_ij, a11, n*n);
+
+    const auto end_my_mult{std::chrono::steady_clock::now()};
+    std::chrono::duration<double> elapsed_seconds = end_my_mult - start_my_mult;
+    return print_test_result(comparison_output, elapsed_seconds.count());
+}
+bool matrix_alg_sum_test(std::string test_name, test_type type, bool is_add){
+    std::cout<<"TEST:\t"<<test_name;
+    const auto start_my_mult{std::chrono::steady_clock::now()};
+
+    int min_random_length=512;
+    int max_random_length=2048;
+
+    std::random_device rd;
+    std::mt19937 engine(rd());
+    std::uniform_int_distribution<std::mt19937::result_type> gen(min_random_length, max_random_length);
+
+    int n = gen(engine);
+
+    std::cout<<" (n = "<<n<<")\n";
+
+    double* a, *b, *c, *base_c;
+
+    a = new double[n*n];
+    b = new double[n*n];
+    c = new double[n*n];
+    base_c = new double[n*n];
+
+    if(type==test_type::identity || type==test_type::zero){
+        if(type==test_type::identity){
+            generate_identity_matrix(b, n);
+            generate_identity_matrix(a, n);
+            generate_zero_matrix(base_c, n);
+            if(is_add){
+                for(int i=0;i<n;i++){
+                    base_c[i*n+i]=2.0;
+                }
+            }else{
+                generate_zero_matrix(base_c, n);
+            }
+
+        }
+        else{
+            generate_zero_matrix(a, n);
+            generate_zero_matrix(b, n);
+            generate_zero_matrix(base_c, n);
+        }
+    }else{
+        return true;
+    }
+    if(is_add){
+        matrix_add(a, b, c, n);
+    }else{
+        matrix_sub(a, b, c, n);
+    }
+
+    std::vector<double> comparison_output = get_unequal_elements(base_c, c, n);
+
+    delete[] a;
+    delete[] b;
+    delete[] c;
 
     const auto end_my_mult{std::chrono::steady_clock::now()};
     std::chrono::duration<double> elapsed_seconds = end_my_mult - start_my_mult;
