@@ -12,7 +12,7 @@ int main(int argc, char* argv[]){
         {"multiplication with transposed matrix (omp+simd)", transposed_matrix_mult_omp_simd},
         {"strassen multiplication", strassen_matrix_mult}};
     std::map<int, std::string> test_type_names={{0, "zero"}, {1, "identity"}, {2, "equal"}, {3, "random"}, {4, "big"}};
-    int passed_counter = 0; 
+    int passed_counter = 0;
     int failed_counter = 0;
     std::vector<std::string> failed_test_names;
     std::string full_test_name;
@@ -30,10 +30,25 @@ int main(int argc, char* argv[]){
         full_test_name = "collect matrices";
         failed_test_names.push_back(full_test_name);
     }
-    std::string matrix_alg_sum_test_name = "matrix addition test";
+    std::string short_test_name = "split + collect matrices";
+
+    for(int i=0; i<=static_cast<int>(test_type::big); i++){
+        if(i==static_cast<int>(test_type::equal)){
+            continue;
+        }
+        full_test_name = short_test_name + std::string(" : "+test_type_names[i]);
+        if(split_and_collect_matrices_test(full_test_name, static_cast<test_type>(i))){
+            passed_counter++;
+        }else{
+            failed_counter++;
+            failed_test_names.push_back(full_test_name);
+        }
+    }
+
+    short_test_name = "matrix addition test";
 
     for(int i=0; i<=static_cast<int>(test_type::identity); i++){
-        full_test_name = matrix_alg_sum_test_name + std::string(" : "+test_type_names[i]);
+        full_test_name = short_test_name + std::string(" : "+test_type_names[i]);
         if(matrix_alg_sum_test(full_test_name, static_cast<test_type>(i), true)){
             passed_counter++;
         }else{
@@ -41,9 +56,9 @@ int main(int argc, char* argv[]){
             failed_test_names.push_back(full_test_name);
         }
     }
-    matrix_alg_sum_test_name = "matrix subtraction test";
+    short_test_name = "matrix subtraction test";
     for(int i=0; i<=static_cast<int>(test_type::identity); i++){
-        full_test_name = matrix_alg_sum_test_name + std::string(" : "+test_type_names[i]);
+        full_test_name = short_test_name + std::string(" : "+test_type_names[i]);
         if(matrix_alg_sum_test(full_test_name, static_cast<test_type>(i), false)){
             passed_counter++;
         }else{

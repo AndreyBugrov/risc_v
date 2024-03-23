@@ -153,21 +153,25 @@ void strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double
     decrease_matrix(c, inc_c, n, inc_dim);
 }
 void recursive_strassen_part(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
-    // std::cout<<"n_start = "<<n<<"\n";
     if(n<=64){
         row_matrix_mult_omp(a, b, c, n);
         return;
     }
     n >>= 1;
-    double *a11 = new double[n*n], *a22 = new double[n*n], *a12 = new double[n*n], *a21 = new double[n*n];
-    double *b11 = new double[n*n], *b12 = new double[n*n], *b21 = new double[n*n], *b22 = new double[n*n];
-    split_matrices(a, a11, a12, a21, a22, n);
-    std::cout<<"after split\n";
-    split_matrices(b, b11, b12, b21, b22, n);
-    std::cout<<"after second split\n";
+    double *a11, *a12, *a21,*a22;
+    double *b11, *b12, *b21, *b22;
+    a11 = new double[n*n];
+    a12 = new double[n*n];
+    a21 = new double[n*n];
+    a22 = new double[n*n];
+    b11 = new double[n*n];
+    b12 = new double[n*n];
+    b21 = new double[n*n];
+    b22 = new double[n*n];
+    split_matrices(a, a11, a12, a21, a22, 2*n);
+    split_matrices(b, b11, b12, b21, b22, 2*n);
     //double *p1, *p2, *p3, *p4, *p5, *p6, *p7;
     double** p = new double*[7];
-    std::cout<<"after all splits\n";
     for(int i=0; i<7; i++){
         p[i] = new double[n*n];
         generate_zero_matrix(p[i], n);
@@ -242,18 +246,18 @@ void recursive_strassen_part(double* __restrict__ a, double* __restrict__ b, dou
     matrix_add(p[0], p[6], p1_add_p6, n);
     matrix_add(p[2], p[1], p3_sub_p2, n);
 
-    std::cout<<"CCCCCCCCCCCCCCCCCCC\n";
+    // std::cout<<"CCCCCCCCCCCCCCCCCCC\n";
     matrix_add(p1_add_p7, p4_sub_p5, c11, n);
-    std::cout<<n<<"\n";
-    for(int i=0;i<n;i++){
-        for(int j=0;j<n;j++){
-            if(c11[i*n+j]!=0)
-                std::cout<<1<<" ";
-            else
-                std::cout<<0<<" ";
-        }
-        std::cout<<"\n";
-    }
+    // std::cout<<n<<"\n";
+    // for(int i=0;i<n;i++){
+    //     for(int j=0;j<n;j++){
+    //         if(c11[i*n+j]!=0)
+    //             std::cout<<1<<" ";
+    //         else
+    //             std::cout<<0<<" ";
+    //     }
+    //     std::cout<<"\n";
+    // }
     matrix_add(p[2], p[4], c12, n);
     matrix_add(p[3], p[1], c21, n);
     matrix_add(p1_add_p6, p3_sub_p2, c22, n);
@@ -267,7 +271,6 @@ void recursive_strassen_part(double* __restrict__ a, double* __restrict__ b, dou
 //     int[][] c21 = summation(p2, p4);
 //     int[][] c22 = summation(subtraction(p1, p2), summation(p3, p6));
 
-    // std::cout<<"n2 = "<<n<<"\n";
     collect_matrices(c, c11, c12, c21, c22, 2*n); // may be delete c_ij here
     // collect_matrices(c, c_ij[0], c_ij[1], c_ij[2], c_ij[3], n<<1); // may be delete c_ij here
 
@@ -370,28 +373,32 @@ void decrease_matrix(double* __restrict__ a, double* __restrict__ inc_a, int n, 
 
 void split_matrices(double* __restrict__ a, double* __restrict__ a11, double* __restrict__ a12,double* __restrict__ a21, double* __restrict__ a22, int n){
     const int half_n = n>>1;
-    for(int i=0;i<half_n;i++){
+    for(int i = 0; i < half_n; i++){
         std::memcpy(a11+i*half_n, a+i*n, half_n*sizeof(double));
     }
-    for(int i=0;i<half_n;i++){
-        std::memcpy(a12+i*half_n, a+i*n+half_n-1, half_n*sizeof(double));
+    for(int i = 0; i < half_n; i++){
+        std::memcpy(a12+i*half_n, a+i*n+half_n, half_n*sizeof(double));
     }
-    for(int i=half_n-1;i<n;i++){
-        std::memcpy(a21+i*half_n, a+i*n, half_n*sizeof(double));
+    for(int i = 0; i < half_n; i++){
+        std::memcpy(a21+i*half_n, a+(i+half_n)*n, half_n*sizeof(double));
     }
-    for(int i=half_n-1;i<n;i++){
-        std::memcpy(a22+i*half_n, a+i*n+half_n-1, half_n*sizeof(double));
+    for(int i = 0; i < half_n; i++){
+        std::memcpy(a22+i*half_n, a+(i+half_n)*n+half_n, half_n*sizeof(double));
     }
 }
 void collect_matrices(double* __restrict__ a, double* __restrict__ a11, double* __restrict__ a12,double* __restrict__ a21, double* __restrict__ a22, int n){
     const int half_n = n>>1;
-    for(int i=0;i<half_n;i++){
+    for(int i = 0; i < half_n; i++){
         std::memcpy(a+i*n, a11+i*half_n, half_n*sizeof(double));
-        std::memcpy(a+i*n+half_n-1, a12+i*half_n, half_n*sizeof(double));
     }
-    for(int i=half_n-1;i<n;i++){
-        std::memcpy(a+i*n, a21+i*half_n, half_n*sizeof(double));
-        std::memcpy(a+i*n+half_n-1, a22+i*half_n, half_n*sizeof(double));
+    for(int i = 0; i < half_n; i++){
+        std::memcpy(a+i*n+half_n, a12+i*half_n, half_n*sizeof(double));
+    }
+    for(int i = 0; i < half_n; i++){
+        std::memcpy(a+(i+half_n)*n, a21+i*half_n, half_n*sizeof(double));
+    }
+    for(int i = 0; i < half_n; i++){
+        std::memcpy(a+(i+half_n)*n+half_n, a22+i*half_n, half_n*sizeof(double));
     }
 }
 void matrix_add(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){

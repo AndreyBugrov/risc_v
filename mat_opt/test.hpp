@@ -29,6 +29,7 @@ enum class test_type{
 bool multiplication_test(std::string test_name, mult_func matrix_mult_function, test_type type);
 bool split_matrices_test(test_type type);
 bool collect_matrices_test(test_type type);
+bool split_and_collect_matrices_test(std::string test_name, test_type type);
 bool matrix_alg_sum_test(std::string test_name, test_type type, bool is_add);
 
 // return two pairs: 1 - pair of unequal element number and first met different unequal element index 2 - pair of minimum and maximum difference

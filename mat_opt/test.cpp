@@ -1,12 +1,13 @@
 #include "test.hpp"
 
-bool print_test_result(std::vector<double> comparing_output, double seconds){
+bool print_test_result(std::vector<double> comparison_output, double seconds){
     bool passed;
-    if(comparing_output[0]>0){
+    if(comparison_output[0]>0){
         std::cout<<"FAILED!\n";
-        std::cout<<"\tPercentage of unequal elements: "<<comparing_output[0]<<"\n";
-        std::cout<<"\tMinimum difference: "<<comparing_output[1]<<"\n";
-        std::cout<<"\tMaximum difference: "<<comparing_output[2]<<"\n";
+        std::cout<<"\tNumber of unequal elements:     "<<comparison_output[0]<<"\n";
+        std::cout<<"\tPercentage of unequal elements: "<<comparison_output[1]<<"\n";
+        std::cout<<"\tMinimum difference:             "<<comparison_output[2]<<"\n";
+        std::cout<<"\tMaximum difference:             "<<comparison_output[3]<<"\n";
         passed = false;
     }else{
         std::cout<<"PASSED!\n";
@@ -87,7 +88,7 @@ bool multiplication_test(std::string test_name, mult_func matrix_mult_function, 
 
     matrix_mult_function(a, b, c, n);
     cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans, n, n, n, 1.0, a, n, b, n, 0.0, base_c, n);
-    std::vector<double> comparison_output = get_unequal_elements(base_c, c, n);
+    std::vector<double> comparison_output = get_unequal_elements(base_c, c, n*n);
 
     delete[] a;
     delete[] b;
@@ -105,11 +106,11 @@ bool split_matrices_test(test_type type){
     int min_random_deg;
     int max_random_deg;
     if(type==test_type::big){
-        min_random_deg = 7;
-        max_random_deg = 9; // right end is included
+        min_random_deg = 10;
+        max_random_deg = 12; // right end is included
     }else{
-        min_random_deg = 4;
-        max_random_deg = 6; // right end is included
+        min_random_deg = 6;
+        max_random_deg = 9; // right end is included
     }
 
     std::random_device rd;
@@ -149,11 +150,11 @@ bool collect_matrices_test(test_type type){
     int min_random_deg;
     int max_random_deg;
     if(type==test_type::big){
-        min_random_deg = 7;
+        min_random_deg = 10;
         max_random_deg = 12; // right end is included
     }else{
-        min_random_deg = 4;
-        max_random_deg = 6; // right end is included
+        min_random_deg = 6;
+        max_random_deg = 9; // right end is included
     }
 
     std::random_device rd;
@@ -183,6 +184,62 @@ bool collect_matrices_test(test_type type){
 
     collect_matrices(a, a11, a12, a21, a22, 2*n);
     std::vector<double> comparison_output = get_unequal_elements(identity_a_ij, a11, n*n);
+
+    const auto end_my_mult{std::chrono::steady_clock::now()};
+    std::chrono::duration<double> elapsed_seconds = end_my_mult - start_my_mult;
+    return print_test_result(comparison_output, elapsed_seconds.count());
+}
+bool split_and_collect_matrices_test(std::string test_name, test_type type){
+    std::cout<<"TEST:\t"<<test_name;
+    const auto start_my_mult{std::chrono::steady_clock::now()};
+
+    int min_random_deg;
+    int max_random_deg;
+    if(type==test_type::big){
+        min_random_deg = 10;
+        max_random_deg = 12; // right end is included
+    }else{
+        min_random_deg = 6;
+        max_random_deg = 9; // right end is included
+    }
+
+    std::random_device rd;
+    std::mt19937 engine(rd());
+    std::uniform_int_distribution<std::mt19937::result_type> gen(min_random_deg, max_random_deg);
+
+    double* base_a, *a11, *a12, *a21, *a22, *a;
+    int n = 1 << gen(engine);
+    base_a = new double[n*n];
+    a = new double[n*n];
+    std::cout<<" (n = "<<n<<")\n";
+    
+    switch (type)
+    {
+        case test_type::zero:
+            generate_zero_matrix(base_a, n);
+            break;
+        case test_type::identity:
+            generate_identity_matrix(base_a, n);
+            break;
+        default:
+            generate_rand_matrix(base_a, n, -100, 100);
+            break;
+    }
+    
+    n >>= 1;
+    a11 = new double[n*n];
+    a12 = new double[n*n];
+    a21 = new double[n*n];
+    a22 = new double[n*n];
+    generate_zero_matrix(a11, n);
+    generate_zero_matrix(a12, n);
+    generate_zero_matrix(a21, n);
+    generate_zero_matrix(a22, n);
+    n <<=1;
+
+    split_matrices(base_a, a11, a12, a21, a22, n);
+    collect_matrices(a, a11, a12, a21, a22, n);
+    std::vector<double> comparison_output = get_unequal_elements(base_a, a, n*n);
 
     const auto end_my_mult{std::chrono::steady_clock::now()};
     std::chrono::duration<double> elapsed_seconds = end_my_mult - start_my_mult;
@@ -238,7 +295,7 @@ bool matrix_alg_sum_test(std::string test_name, test_type type, bool is_add){
         matrix_sub(a, b, c, n);
     }
 
-    std::vector<double> comparison_output = get_unequal_elements(base_c, c, n);
+    std::vector<double> comparison_output = get_unequal_elements(base_c, c, n*n);
 
     delete[] a;
     delete[] b;
@@ -258,6 +315,8 @@ std::vector<double> get_unequal_elements(double* base, double* current, int size
     for(int i=0; i<size; i++){
         difference = abs(base[i]-current[i]);
         if(difference>eps){
+            // std::cout<<"size="<<size<<"\n";
+            // std::cout<<i<<"\n";
             fault_counter++;
             if(min_difference>difference){
                 min_difference = difference;
@@ -268,8 +327,8 @@ std::vector<double> get_unequal_elements(double* base, double* current, int size
         }
     }
     double fault_percentage = fault_counter / size * 100.0;
-    // std::cout<<fault_counter<<" "<<size<<"\n";
     std::vector<double> out;
+    out.push_back(fault_counter);
     out.push_back(fault_percentage); 
     out.push_back(min_difference);
     out.push_back(max_difference);
