@@ -44,6 +44,13 @@ int main(int argc, char* argv[]){
             failed_test_names.push_back(full_test_name);
         }
     }
+    short_test_name = "increase and decrease matrices";
+    if(increase_and_decrease_matrices(short_test_name)){
+        passed_counter++;
+    }else{
+        failed_counter++;
+        failed_test_names.push_back(full_test_name);
+    }
 
     short_test_name = "matrix addition test";
 

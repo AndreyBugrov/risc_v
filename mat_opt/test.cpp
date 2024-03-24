@@ -41,11 +41,15 @@ bool multiplication_test(std::string test_name, mult_func matrix_mult_function, 
     int min_random_length;
     int max_random_length;
     if(type==test_type::big){
-        min_random_length = 128;
-        max_random_length = 256; // right end is included
+        // min_random_length = 128;
+        // max_random_length = 256; // right end is included
+        min_random_length = kRecursiveStrassenMultLimit<<2;
+        max_random_length = kRecursiveStrassenMultLimit<<3; // right end is included
     }else{
-        min_random_length = 16;
-        max_random_length = 64; // right end is included
+        // min_random_length = 16;
+        // max_random_length = 64; // right end is included
+        min_random_length = kRecursiveStrassenMultLimit;
+        max_random_length = kRecursiveStrassenMultLimit<<1; // right end is included
     }
 
     std::random_device rd;
@@ -66,16 +70,16 @@ bool multiplication_test(std::string test_name, mult_func matrix_mult_function, 
     if(type==test_type::identity || type==test_type::zero){
         if(gen(engine)%2){
             if(type==test_type::identity){
-                generate_zero_matrix(b, n);
-            }else{
                 generate_identity_matrix(b, n);
+            }else{
+                generate_zero_matrix(b, n);
             }
             generate_rand_matrix(a, n, -100.0, 100.0);
         }else{
             if(type==test_type::identity){
-                generate_zero_matrix(a, n);
-            }else{
                 generate_identity_matrix(a, n);
+            }else{
+                generate_zero_matrix(a, n);
             }
             generate_rand_matrix(b, n, -100.0, 100.0);
         }
@@ -239,6 +243,45 @@ bool split_and_collect_matrices_test(std::string test_name, test_type type){
 
     split_matrices(base_a, a11, a12, a21, a22, n);
     collect_matrices(a, a11, a12, a21, a22, n);
+    std::vector<double> comparison_output = get_unequal_elements(base_a, a, n*n);
+
+    const auto end_my_mult{std::chrono::steady_clock::now()};
+    std::chrono::duration<double> elapsed_seconds = end_my_mult - start_my_mult;
+    return print_test_result(comparison_output, elapsed_seconds.count());
+}
+bool increase_and_decrease_matrices(std::string test_name){
+    std::cout<<"TEST:\t"<<test_name;
+    const auto start_my_mult{std::chrono::steady_clock::now()};
+
+    const int min_random_length = 512;
+    const int max_random_length = 2048; // right end is included
+
+    std::random_device rd;
+    std::mt19937 engine(rd());
+    std::uniform_int_distribution<std::mt19937::result_type> gen(min_random_length, max_random_length);
+
+    double* base_a, *a;
+    int n = gen(engine);
+    base_a = new double[n*n];
+    a = new double[n*n];
+    std::cout<<" (n = "<<n<<")\n";
+
+    int inc_dim = 1;
+    int offset = log2(n);
+    if(offset<log2(n)){
+        offset++;
+    }
+    inc_dim <<= offset;
+    std::cout<<n<<" "<<inc_dim<<"\n";
+
+    generate_rand_matrix(base_a, n, -100, 100);
+
+    double* inc_a = new double[inc_dim*inc_dim];
+
+    for(int i=0;i<n;i++){
+        std::memcpy(inc_a+i*inc_dim, base_a+i*n, n*sizeof(double));
+    }
+    decrease_matrix(a, inc_a, n, inc_dim);
     std::vector<double> comparison_output = get_unequal_elements(base_a, a, n*n);
 
     const auto end_my_mult{std::chrono::steady_clock::now()};
