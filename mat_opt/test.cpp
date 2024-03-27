@@ -272,7 +272,6 @@ bool increase_and_decrease_matrices(std::string test_name){
         offset++;
     }
     inc_dim <<= offset;
-    std::cout<<n<<" "<<inc_dim<<"\n";
 
     generate_rand_matrix(base_a, n, -100, 100);
 

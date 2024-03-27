@@ -12,7 +12,7 @@ def error_message(msg: str):
 
 
 def compile_source(source_file_list: list[str], bin_path: str, optimization_flag: str):
-    args = 'g++ ' + ' '.join(source_file_list) + ' -o ' + bin_path + ' ' + optimization_flag + ' -fopenmp' + ' -I ' 'open_blas/ ' + '-lopenblas'
+    args = 'g++ ' + ' '.join(source_file_list) + ' -o ' + bin_path + ' ' + optimization_flag + ' -fopenmp -I open_blas/ -lopenblas'
     cmd = shlex.split(args)
     subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
 
@@ -65,16 +65,16 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization")
-    parser.add_argument('-f', '--function-name', choices=['all', 'omp', 'single-thread', 'base', 'base_omp', 
-                                                          'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd'], 
+    parser.add_argument('-f', '--function-name', choices=['all', 'omp', 'single_thread', 'base', 'base_omp', 
+                                                          'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd', 'strassen'], 
                         help="\tShort name for matrix multiplication function."
-                        "\n'all': all function, omp: omp functions only, single-thread: single-thread functions only",
+                        "\n'all': all functions, omp: omp functions only, single_thread: single-thread functions only",
                         required=True)
     parser.add_argument('-s', "--matrix-sizes", help="Matrix sizes: 1) min n 2) max n 3) step", type=int, nargs=3)
     parser.add_argument('-l', '--opt-level', help="Optimization level in the execution file",
                         choices=['release', 'opt', 'fast'], default='opt')
-    parser.add_argument('-n', '--exp-num', help="Number of experiments with equal parameters", type=int,required=True)
-    parser.add_argument('-d', '--device-name', help="RISC-V device name", choices=["sf2", "leeche", "mango", "kendryte", "x86"])
+    parser.add_argument('-n', '--exp-num', help="Number of experiments with equal parameters", type=int, required=True)
+    parser.add_argument('-d', '--device-name', help="RISC-V device name", choices=["sf2", "lichee", "mango", "kendryte", "x86"])
     args = parser.parse_args()
     function_name = args.function_name
     matrix_sizes = args.matrix_sizes

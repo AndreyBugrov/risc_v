@@ -32,7 +32,11 @@ void optimal_block_matrix_mult(double* __restrict__ a, double* __restrict__ b, d
 void b_transposed_block_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 
 void strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void strassen_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void recursive_strassen_part(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void recursive_strassen_part_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void recursive_strassen_part_naive_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void base_strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n, int opt_types);
 
 void transpose_matrix_in_place(double* matr, int n);
 double* get_transposed_matrix(double* matr, int n);
@@ -46,4 +50,6 @@ void split_matrices(double* __restrict__ a, double* __restrict__ a11, double* __
 // n means n for a
 void collect_matrices(double* __restrict__ a, double* __restrict__ a11, double* __restrict__ a12,double* __restrict__ a21, double* __restrict__ a22, int n_a);
 void matrix_add(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void matrix_add_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void matrix_sub(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void matrix_sub_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
