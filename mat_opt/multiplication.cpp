@@ -147,6 +147,7 @@ void base_strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, d
         recursive_strassen_part_omp(inc_a, inc_b, inc_c, inc_n);
         break;
     case 2:
+        recursive_strassen_part_rec_omp(inc_a, inc_b, inc_c, inc_n);
         break;
     
     default:
@@ -160,9 +161,12 @@ void strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double
 void strassen_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){  
     base_strassen_matrix_mult(a, b, c, n, 1);
 }
+void strassen_matrix_mult_rec_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    base_strassen_matrix_mult(a, b, c, n, 2);
+}
 void recursive_strassen_part(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     if(n<=kRecursiveStrassenMultLimit){
-        row_matrix_mult_omp(a, b, c, n); //??????????????????????????????????????????
+        row_matrix_mult(a, b, c, n);
         return;
     }
     n >>= 1;
@@ -327,6 +331,118 @@ void recursive_strassen_part_omp(double* __restrict__ a, double* __restrict__ b,
     matrix_add_omp(p[2], p[4], c12, n);
     matrix_add_omp(p[1], p[3], c21, n);
     matrix_add_omp(p1_sub_p2, p3_sum_p6, c22, n);
+
+    for(int i=0;i<7;i++){
+        delete[] p[i];
+    }
+    delete p;
+
+    collect_matrices(c, c11, c12, c21, c22, 2*n); // may be delete c_ij here
+    delete[] c11;
+    delete[] c12;
+    delete[] c21;
+    delete[] c22;
+}
+void recursive_strassen_part_rec_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+        if(n<=kRecursiveStrassenMultLimit){
+        row_matrix_mult(a, b, c, n);
+        return;
+    }
+    n >>= 1;
+    double *a11, *a12, *a21,*a22;
+    double *b11, *b12, *b21, *b22;
+    a11 = new double[n*n];
+    a12 = new double[n*n];
+    a21 = new double[n*n];
+    a22 = new double[n*n];
+    b11 = new double[n*n];
+    b12 = new double[n*n];
+    b21 = new double[n*n];
+    b22 = new double[n*n];
+    split_matrices(a, a11, a12, a21, a22, 2*n);
+    split_matrices(b, b11, b12, b21, b22, 2*n);
+    double** p = new double*[7];
+    for(int i=0; i<7; i++){
+        p[i] = new double[n*n];
+        generate_zero_matrix(p[i], n);
+    }
+    double* a11_add_a22, *b11_add_b22, *a21_add_a22, *b12_sub_b22, *b21_sub_b11, *a11_add_a12, *a21_sub_a11, *b11_add_b12, *a12_sub_a22, *b21_add_b22;
+    a11_add_a22 = new double[n*n];
+    b11_add_b22 = new double[n*n];
+    a21_add_a22 = new double[n*n];
+    b12_sub_b22 = new double[n*n];
+    b21_sub_b11 = new double[n*n];
+    a11_add_a12 = new double[n*n];
+    a21_sub_a11 = new double[n*n];
+    b11_add_b12 = new double[n*n];
+    a12_sub_a22 = new double[n*n];
+    b21_add_b22 = new double[n*n];
+
+    matrix_add(a11, a22, a11_add_a22, n);
+    matrix_add(b11, b22, b11_add_b22, n);
+    matrix_add(a21, a22, a21_add_a22, n);
+    matrix_sub(b12, b22, b12_sub_b22, n);
+    matrix_sub(b21, b11, b21_sub_b11, n);
+    matrix_add(a11, a12, a11_add_a12, n);
+    matrix_sub(a21, a11, a21_sub_a11, n);
+    matrix_add(b11, b12, b11_add_b12, n);
+    matrix_sub(a12, a22, a12_sub_a22, n);
+    matrix_add(b21, b22, b21_add_b22, n);
+
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            recursive_strassen_part(a11_add_a22, b11_add_b22, p[0], n); // + D
+        }
+        #pragma omp section
+        {
+            recursive_strassen_part(a21_add_a22, b11, p[1], n); // + H2
+        }
+        #pragma omp section 
+        {
+            recursive_strassen_part(a11, b12_sub_b22, p[2], n); // + V2
+        }
+        #pragma omp section
+        {
+            recursive_strassen_part(a22, b21_sub_b11, p[3], n); // + V1
+        }
+        #pragma omp section
+        {
+            recursive_strassen_part(a11_add_a12, b22, p[4], n); // + H1
+        }
+        #pragma omp section
+        {
+            recursive_strassen_part(a21_sub_a11, b11_add_b12, p[5], n); // + D2
+        }
+        #pragma omp section
+        {
+            recursive_strassen_part(a12_sub_a22, b21_add_b22, p[6], n); // + D1
+        }
+    }
+    delete[] a11_add_a22;
+    delete[] b11_add_b22;
+    delete[] a21_add_a22;
+    delete[] b12_sub_b22;
+    delete[] b21_sub_b11;
+    delete[] a11_add_a12;
+    delete[] a21_sub_a11;
+    delete[] b11_add_b12;
+    delete[] a12_sub_a22;
+    delete[] b21_add_b22;
+
+    double *c11 = new double[n*n], *c12 = new double[n*n], *c21 = new double[n*n], *c22 = new double[n*n];
+    double* p1_add_p4 = new double[n*n], *p7_sub_p5 = new double[n*n], *p1_sub_p2 = new double[n*n], *p3_sum_p6 = new double[n*n]; // can be reduced to reusing c_ij
+
+    matrix_add(p[0], p[3], p1_add_p4, n);
+    matrix_sub(p[6], p[4], p7_sub_p5, n);
+    matrix_sub(p[0], p[1], p1_sub_p2, n);
+    matrix_add(p[2], p[5], p3_sum_p6, n);
+
+    matrix_add(p1_add_p4, p7_sub_p5, c11, n);
+    matrix_add(p[2], p[4], c12, n);
+    matrix_add(p[1], p[3], c21, n);
+    matrix_add(p1_sub_p2, p3_sum_p6, c22, n);
 
     for(int i=0;i<7;i++){
         delete[] p[i];

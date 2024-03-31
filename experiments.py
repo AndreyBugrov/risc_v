@@ -34,21 +34,17 @@ def get_min_max_frequencies():
 
 def set_min_core_frequency_limit(frequency, core_num):
     line = f"sudo sh -c 'echo {frequency} > /sys/devices/system/cpu/cpu{core_num}/cpufreq/scaling_min_freq'"
-    subprocess.Popen(command_list=line, shell=True).communicate()
+    subprocess.Popen(line, shell=True).communicate()
 
 
-def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], exp_num: int, device_type: str):
+def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], exp_num: int, device_type: str, frequency: int):
     min_n = matrix_sizes[0]
     max_n = matrix_sizes[1] + 1
     step = matrix_sizes[2]
-    core_nums = get_available_cores()
-    frequencies = get_min_max_frequencies()
-    csv_file_name = function_name + '_' + device_type + '_' + str(frequencies[1] / 1000) + '_GHz'
+    csv_file_name = function_name + '_' + device_type + '_' + str(frequency / 1000*1000) + 'GHz'
     with open(os.path.join('csv_results', csv_file_name), 'w', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(['Row size','OpenBLAS', 'Current', 'Ratio', 'Inaccuracy'])
-        for core in core_nums:
-            set_min_core_frequency_limit(frequencies[1], core)
         for i in range(min_n, max_n, step):
             num = str(i)
             args = f"{bin_path} a {function_name} {num} {exp_num}"
@@ -59,14 +55,13 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
             row = result.split(';')
             row.insert(0, num)
             writer.writerow(row)
-        for core in core_nums:
-            set_min_core_frequency_limit(frequencies[0], core)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization")
     parser.add_argument('-f', '--function-name', choices=['all', 'omp', 'single_thread', 'base', 'base_omp', 
-                                                          'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd', 'strassen'], 
+                                                          'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd', 'strassen', 
+                                                          'strassen_omp', 'strassen_rec_omp'], 
                         help="\tShort name for matrix multiplication function."
                         "\n'all': all functions, omp: omp functions only, single_thread: single-thread functions only",
                         required=True)
@@ -94,13 +89,18 @@ if __name__ == '__main__':
     root_bin_dir = 'bin'
 
     if function_name == 'all':
-        function_name_list = ['base', 'base_omp', 'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd']
+        function_name_list = ['base', 'base_omp', 'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd', 'strassen', 'strassen_omp', 'strassen_rec_omp']
     elif function_name == 'omp':
-        function_name_list = ['base_omp', 'row_omp', 'tr_omp', 'tr_omp_simd']
+        function_name_list = ['base_omp', 'row_omp', 'tr_omp', 'tr_omp_simd', 'strassen_omp', 'strassen_rec_omp']
     elif function_name == 'single-thread':
-        function_name_list = ['base', 'row', 'tr']
+        function_name_list = ['base', 'row', 'tr', 'strassen']
     else:
         function_name_list = [function_name]
+
+    core_nums = get_available_cores()
+    frequencies = get_min_max_frequencies()
+    for core in core_nums:
+        set_min_core_frequency_limit(frequencies[1], core)
     
     for function_item in function_name_list:
         bin_file_name = function_item + '_' + opt_level
@@ -110,5 +110,8 @@ if __name__ == '__main__':
                             os.path.join(root_source_dir, 'experiment.cpp'),
                             os.path.join(root_source_dir, 'main_experiment.cpp')]
         compile_source(source_file_list, bin_path, type_handlings[opt_level])
-        run_matrix_exp(bin_path, function_item, matrix_sizes, exp_num, device_name)
+        run_matrix_exp(bin_path, function_item, matrix_sizes, exp_num, device_name, frequencies[1])
         print(f"\"{function_item}\" function experiment is conducted")
+    
+    for core in core_nums:
+        set_min_core_frequency_limit(frequencies[0], core)

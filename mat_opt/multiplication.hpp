@@ -33,9 +33,10 @@ void b_transposed_block_matrix_mult(double* __restrict__ a, double* __restrict__
 
 void strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void strassen_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void strassen_matrix_mult_rec_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void recursive_strassen_part(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void recursive_strassen_part_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
-void recursive_strassen_part_naive_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void recursive_strassen_part_rec_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void base_strassen_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n, int opt_types);
 
 void transpose_matrix_in_place(double* matr, int n);

@@ -11,7 +11,8 @@ int main(int argc, char* argv[]){
         {"multiplication with transposed matrix (omp)", transposed_matrix_mult_omp},
         {"multiplication with transposed matrix (omp+simd)", transposed_matrix_mult_omp_simd},
         {"strassen multiplication", strassen_matrix_mult},
-        {"strassen multiplication (omp)", strassen_matrix_mult_omp}};
+        {"strassen multiplication (naive omp)", strassen_matrix_mult_omp},
+        {"strassen multiplication (recurcive omp)", strassen_matrix_mult_rec_omp}};
     std::map<int, std::string> test_type_names={{0, "zero"}, {1, "identity"}, {2, "equal"}, {3, "random"}, {4, "big"}};
     int passed_counter = 0;
     int failed_counter = 0;
