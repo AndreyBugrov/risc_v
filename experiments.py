@@ -41,7 +41,7 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
     min_n = matrix_sizes[0]
     max_n = matrix_sizes[1] + 1
     step = matrix_sizes[2]
-    csv_file_name = function_name + '_' + device_type + '_' + str(frequency / 1000*1000) + 'GHz'
+    csv_file_name = function_name + '_' + device_type + '_' + str(frequency / (1000*1000)) + 'GHz'
     with open(os.path.join('csv_results', csv_file_name), 'w', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(['Row size','OpenBLAS', 'Current', 'Ratio', 'Inaccuracy'])
@@ -50,7 +50,10 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
             args = f"{bin_path} a {function_name} {num} {exp_num}"
             cmd = shlex.split(args)
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            out = proc.communicate()[0].decode('utf-8')
+            full_out = proc.communicate()
+            out = full_out[0].decode('utf-8')
+            if full_out[1]:
+                print(full_out[1].decode('utf-8')) #proc.communicate()[0].decode('utf-8')
             result = ';'.join(out[:-1].split('\n'))
             row = result.split(';')
             row.insert(0, num)
@@ -97,19 +100,19 @@ if __name__ == '__main__':
     else:
         function_name_list = [function_name]
 
+    bin_path = os.path.join(root_bin_dir, device_name + '_exp')
+    source_file_list = [os.path.join(root_source_dir, 'common.cpp'),
+                            os.path.join(root_source_dir, 'multiplication.cpp'),
+                            os.path.join(root_source_dir, 'experiment.cpp'),
+                            os.path.join(root_source_dir, 'main_experiment.cpp')]
+    compile_source(source_file_list, bin_path, type_handlings[opt_level])
+
     core_nums = get_available_cores()
     frequencies = get_min_max_frequencies()
     for core in core_nums:
         set_min_core_frequency_limit(frequencies[1], core)
     
     for function_item in function_name_list:
-        bin_file_name = function_item + '_' + opt_level
-        bin_path = os.path.join(root_bin_dir, bin_file_name)
-        source_file_list = [os.path.join(root_source_dir, 'common.cpp'),
-                            os.path.join(root_source_dir, 'multiplication.cpp'),
-                            os.path.join(root_source_dir, 'experiment.cpp'),
-                            os.path.join(root_source_dir, 'main_experiment.cpp')]
-        compile_source(source_file_list, bin_path, type_handlings[opt_level])
         run_matrix_exp(bin_path, function_item, matrix_sizes, exp_num, device_name, frequencies[1])
         print(f"\"{function_item}\" function experiment is conducted")
     
