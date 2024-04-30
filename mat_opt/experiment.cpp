@@ -22,20 +22,21 @@ void print_experiment_result(double* cblas_seconds, double* current_seconds, int
 }
 
 mult_func get_multiplication_function(std::string function_name){
-    const int names_num = 10;
-    std::string all_function_names[names_num]={"base", "base_omp", "row", "row_omp", "tr", "tr_omp", "tr_omp_simd", "strassen", 
+    const int names_num = 11;
+    std::string all_function_names[names_num]={"base", "base_omp", "row", "row_omp", "row_omp_simd", "tr", "tr_omp", "tr_omp_simd", "strassen", 
     "strassen_omp", "strassen_rec_omp"};
     const std::map<std::string, mult_func> func_map={
     {all_function_names[0], base_matrix_mult},
     {all_function_names[1], base_matrix_mult_omp},
     {all_function_names[2], row_matrix_mult},
     {all_function_names[3], row_matrix_mult_omp},
-    {all_function_names[4], transposed_matrix_mult},
-    {all_function_names[5], transposed_matrix_mult_omp},
-    {all_function_names[6], transposed_matrix_mult_omp_simd}, // do not use it! it is slow function
-    {all_function_names[7], strassen_matrix_mult},
-    {all_function_names[8], strassen_matrix_mult_omp},
-    {all_function_names[9], strassen_matrix_mult_rec_omp}
+    {all_function_names[4], row_matrix_mult_omp_simd}
+    // {all_function_names[4], transposed_matrix_mult},
+    // {all_function_names[5], transposed_matrix_mult_omp},
+    // {all_function_names[6], transposed_matrix_mult_omp_simd}, // do not use it! it is slow function
+    // {all_function_names[7], strassen_matrix_mult},
+    // {all_function_names[8], strassen_matrix_mult_omp},
+    // {all_function_names[9], strassen_matrix_mult_rec_omp}
     };
     try{
         return func_map.at(function_name);

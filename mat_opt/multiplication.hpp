@@ -10,14 +10,22 @@
 #include "common.hpp" // generate_zero_matrix in increase_matrixes
 
 // max value at which recursion in Strassen multiplication method stops
-const int k_Log2RecursiveStrassenMultLimit = 7;
-const int kRecursiveStrassenMultLimit = pow(2, k_Log2RecursiveStrassenMultLimit);
+const int kLog2RecursiveStrassenMultLimit = 8;
+const int kRecursiveStrassenMultLimit = pow(2, kLog2RecursiveStrassenMultLimit);
+const int kLog2TestLimit = 7;
+const int kTestLimit = pow(2, kLog2TestLimit);
+
+// std::vector<int> get_numbers(std::string){
+//     //21
+//     return std::vector<int>();
+// }
 
 void base_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void base_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 
 void row_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void row_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void row_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 
 void b_transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void b_transposed_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);

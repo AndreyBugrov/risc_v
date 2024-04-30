@@ -18,6 +18,14 @@ int main(int argc, char* argv[]){
     int failed_counter = 0;
     std::vector<std::string> failed_test_names;
     std::string full_test_name;
+
+    std::string filename = "cache.txt";
+    int* cache_sizes = new int[kCacheLevelNumber];
+    get_cache_sizes(filename, cache_sizes);
+    // for(int i=0;i<kCacheLevelNumber;i++){
+    //     std::cout<<i<<": "<<cache_sizes[i]<<"\n";
+    // }
+
     if (split_matrices_test(test_type::big)){
         passed_counter++;
     }else{

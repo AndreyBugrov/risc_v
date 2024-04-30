@@ -60,6 +60,19 @@ void row_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double*
             }
         }
 }
+void row_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+     #pragma omp parallel
+    {
+        #pragma omp for simd
+            for(int i=0;i<n;i++){
+                for(int j=0;j<n;j++){
+                    for(int k=0;k<n;k++){
+                        c[i*n+k]+=a[i*n+j]*b[j*n+k];
+                    }
+                }
+            }
+    }
+}
 void b_transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     for(int i=0;i<n;i++){
         for(int j=0;j<n;j++){

@@ -20,3 +20,17 @@ void generate_identity_matrix(double* matr, int n){
         matr[i*n+i]=1.0;
     }
 }
+
+void get_cache_sizes(std::string filename, int* cache_sizes){
+    std::ifstream input_file(filename);
+    if(input_file.is_open()){
+        std::string line;
+        int i=0;
+        while(std::getline(input_file, line)){
+            cache_sizes[i] = std::stoi(line);
+            i++;
+        }
+    }else{
+        throw(std::string("File \"")+filename+std::string("\" has not been opened\n"));
+    }
+}

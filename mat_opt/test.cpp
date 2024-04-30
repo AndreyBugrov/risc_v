@@ -43,13 +43,13 @@ bool multiplication_test(std::string test_name, mult_func matrix_mult_function, 
     if(type==test_type::big){
         // min_random_length = 128;
         // max_random_length = 256; // right end is included
-        min_random_length = kRecursiveStrassenMultLimit<<2;
-        max_random_length = kRecursiveStrassenMultLimit<<3; // right end is included
+        min_random_length = kTestLimit<<2;
+        max_random_length = kTestLimit<<3; // right end is included
     }else{
         // min_random_length = 16;
         // max_random_length = 64; // right end is included
-        min_random_length = kRecursiveStrassenMultLimit;
-        max_random_length = kRecursiveStrassenMultLimit<<1; // right end is included
+        min_random_length = kTestLimit;
+        max_random_length = kTestLimit<<1; // right end is included
     }
 
     std::random_device rd;
@@ -110,11 +110,11 @@ bool split_matrices_test(test_type type){
     int min_random_deg;
     int max_random_deg;
     if(type==test_type::big){
-        min_random_deg = k_Log2RecursiveStrassenMultLimit+3;
-        max_random_deg = k_Log2RecursiveStrassenMultLimit+5; // right end is included
+        min_random_deg = kLog2TestLimit+3;
+        max_random_deg = kLog2TestLimit+5; // right end is included
     }else{
-        min_random_deg = k_Log2RecursiveStrassenMultLimit;
-        max_random_deg = k_Log2RecursiveStrassenMultLimit+2; // right end is included
+        min_random_deg = kLog2TestLimit;
+        max_random_deg = kLog2TestLimit+2; // right end is included
     }
 
     std::random_device rd;
@@ -154,11 +154,11 @@ bool collect_matrices_test(test_type type){
     int min_random_deg;
     int max_random_deg;
     if(type==test_type::big){
-        min_random_deg = k_Log2RecursiveStrassenMultLimit+3;
-        max_random_deg = k_Log2RecursiveStrassenMultLimit+5; // right end is included
+        min_random_deg = kLog2TestLimit+3;
+        max_random_deg = kLog2TestLimit+5; // right end is included
     }else{
-        min_random_deg = k_Log2RecursiveStrassenMultLimit;
-        max_random_deg = k_Log2RecursiveStrassenMultLimit+2; // right end is included
+        min_random_deg = kLog2TestLimit;
+        max_random_deg = kLog2TestLimit+2; // right end is included
     }
 
     std::random_device rd;
@@ -200,11 +200,11 @@ bool split_and_collect_matrices_test(std::string test_name, test_type type){
     int min_random_deg;
     int max_random_deg;
     if(type==test_type::big){
-        min_random_deg = k_Log2RecursiveStrassenMultLimit+3;
-        max_random_deg = k_Log2RecursiveStrassenMultLimit+5; // right end is included
+        min_random_deg = kLog2TestLimit+3;
+        max_random_deg = kLog2TestLimit+5; // right end is included
     }else{
-        min_random_deg = k_Log2RecursiveStrassenMultLimit;
-        max_random_deg = k_Log2RecursiveStrassenMultLimit+2; // right end is included
+        min_random_deg = kLog2TestLimit;
+        max_random_deg = kLog2TestLimit+2; // right end is included
     }
 
     std::random_device rd;
@@ -253,8 +253,8 @@ bool increase_and_decrease_matrices(std::string test_name){
     std::cout<<"TEST:\t"<<test_name;
     const auto start_my_mult{std::chrono::steady_clock::now()};
 
-    const int min_random_length = kRecursiveStrassenMultLimit<<2;
-    const int max_random_length = kRecursiveStrassenMultLimit<<4; // right end is included
+    const int min_random_length = kTestLimit<<2;
+    const int max_random_length = kTestLimit<<4; // right end is included
 
     std::random_device rd;
     std::mt19937 engine(rd());
@@ -291,8 +291,8 @@ bool matrix_alg_sum_test(std::string test_name, test_type type, bool is_add){
     std::cout<<"TEST:\t"<<test_name;
     const auto start_my_mult{std::chrono::steady_clock::now()};
 
-    const int min_random_length = kRecursiveStrassenMultLimit<<2;
-    const int max_random_length = kRecursiveStrassenMultLimit<<4; // right end is included
+    const int min_random_length = kTestLimit<<2;
+    const int max_random_length = kTestLimit<<4; // right end is included
 
     std::random_device rd;
     std::mt19937 engine(rd());

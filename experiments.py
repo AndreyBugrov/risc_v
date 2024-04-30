@@ -17,6 +17,18 @@ def compile_source(source_file_list: list[str], bin_path: str, optimization_flag
     subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
 
 
+def create_cache_list_file(file_path: str):
+    args = 'getconf -a | grep CACHE'
+    cache_info = subprocess.Popen(args, stdout=subprocess.PIPE, shell=True).communicate()[0].decode('utf-8').split('\n')[:-1]
+    with open(file_path, 'w') as f:
+        for line in cache_info:
+            cache_level_info = line.split()
+            if(len(cache_level_info)>1):
+                f.write(f'{cache_level_info[1]}\n')
+            else:
+                f.write('0\n')
+
+
 def get_available_cores():
     with open('/proc/cpuinfo', 'r') as f:
         return [int(line[:-1].split(': ')[1]) for line in f.readlines() if line.startswith('processor')]
@@ -67,16 +79,16 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization")
     parser.add_argument('-f', '--function-name', choices=['all', 'omp', 'single_thread', 'base', 'base_omp', 
-                                                          'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd', 'strassen', 
-                                                          'strassen_omp', 'strassen_rec_omp'], nargs='*',
+                                                          'row', 'row_omp', 'row_omp_simd', 'tr', 'tr_omp', 'tr_omp_simd', 'strassen', 
+                                                          'strassen_omp', 'strassen_rec_omp'], nargs='+',
                         help="\tShort name for matrix multiplication function."
                         "\n'all': all functions, omp: omp functions only, single_thread: single-thread functions only",
                         required=True)
-    parser.add_argument('-s', "--matrix-sizes", help="Matrix sizes: 1) min n 2) max n 3) step", type=int, nargs=3)
+    parser.add_argument('-s', "--matrix-sizes", help="Matrix sizes", metavar=('MIN_SIZE', 'MAX_SIZE', 'STEP'),type=int, nargs=3, required=True)
     parser.add_argument('-l', '--opt-level', help="Optimization level in the execution file",
                         choices=['release', 'opt', 'fast'], default='opt')
     parser.add_argument('-n', '--exp-num', help="Number of experiments with equal parameters", type=int, required=True)
-    parser.add_argument('-d', '--device-name', help="RISC-V device name", choices=["sf2", "lichee", "mango", "kendryte", "x86"])
+    parser.add_argument('-d', '--device-name', help="RISC-V device name", choices=["sf2", "lichee", "mango", "kendryte", "x86"], required=True)
     parser.add_argument('--is-temporary', help="should the results be saved to temporary directory", required=True, choices=['true', 'false'])
     args = parser.parse_args()
     function_name = args.function_name
@@ -97,32 +109,39 @@ if __name__ == '__main__':
     root_source_dir = 'mat_opt'
     root_bin_dir = 'bin'
 
-    function_name_list = []
+    function_name_list = {}
+    omp_function_set = {'base_omp', 'tr_omp', 'tr_omp_simd', 'row_omp', 'row_omp_simd', 'strassen_omp', 'strassen_rec_omp'}
+    single_thread_function_set = {'base', 'row', 'tr', 'strassen'}
+    simd_function_set = {'tr_omp_simd', 'row_omp_simd'}
     if 'all' in function_name:
-        function_name_list = ['base', 'base_omp', 'row', 'row_omp', 'tr', 'tr_omp', 'tr_omp_simd', 'strassen', 'strassen_omp', 'strassen_rec_omp']
+        function_name_list = single_thread_function_set.union(omp_function_set)
     else:
-        function_name_list = list({item for item in function_name if item != 'omp' and item != 'single_thread'})
+        function_name_list = {item for item in function_name if item != 'omp' and item != 'single_thread'}
         if 'omp' in function_name:
-            function_name_list.extend(['base_omp', 'row_omp', 'tr_omp', 'tr_omp_simd', 'strassen_omp', 'strassen_rec_omp'])
+            function_name_list = function_name_list.union(omp_function_set)
         if 'single_thread' in function_name:
-            function_name_list.extend(['base', 'row', 'tr', 'strassen'])
+            function_name_list = function_name_list.union(single_thread_function_set)
 
     bin_path = os.path.join(root_bin_dir, device_name + '_exp')
     source_file_list = [os.path.join(root_source_dir, 'common.cpp'),
                             os.path.join(root_source_dir, 'multiplication.cpp'),
                             os.path.join(root_source_dir, 'experiment.cpp'),
                             os.path.join(root_source_dir, 'main_experiment.cpp')]
-    print("Process compilation...\n")
-    compile_source(source_file_list, bin_path, type_handlings[opt_level])
+    print("Preprocessing...")
+    compile_source(source_file_list, bin_path, type_handlings[opt_level]) # recompilation does not garantees cold start (garanteed only for first function)
+
+    create_cache_list_file('cache.txt')
 
     core_nums = get_available_cores()
     frequencies = get_min_max_frequencies()
     for core in core_nums:
         set_min_core_frequency_limit(frequencies[1], core)
-    
+
+    print("Conducting an experiment...")    
     for function_item in function_name_list:
         print(f'Process \"{function_item}\" function...')
         run_matrix_exp(bin_path, function_item, matrix_sizes, exp_num, device_name, frequencies[1], is_temporary)
     
     for core in core_nums:
         set_min_core_frequency_limit(frequencies[0], core)
+    print("Done!")
