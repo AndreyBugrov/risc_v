@@ -5,6 +5,7 @@ import shlex
 import sys
 import os
 
+from colorama import Fore, Style
 
 def error_message(msg: str):
     print(f"Error: {msg}")
@@ -14,7 +15,9 @@ def error_message(msg: str):
 def compile_source(source_file_list: list[str], bin_path: str, optimization_flag: str):
     args = 'g++ ' + ' '.join(source_file_list) + ' -o ' + bin_path + ' ' + optimization_flag + ' -fopenmp -I open_blas/ -lopenblas'
     cmd = shlex.split(args)
-    subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
+    compiler_errors = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[1]
+    if compiler_errors:
+        error_message('\n'+compiler_errors.decode('utf-8'))
 
 
 def create_cache_list_file(file_path: str):
@@ -77,12 +80,18 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization")
-    parser.add_argument('-f', '--function-name', choices=['all', 'omp', 'single_thread', 'base', 'base_omp', 
-                                                          'row', 'row_omp', 'row_omp_simd', 'tr', 'tr_omp', 'tr_omp_simd', 'strassen', 
-                                                          'strassen_omp', 'strassen_rec_omp'], nargs='+',
-                        help="\tShort name for matrix multiplication function."
-                        "\n'all': all functions, omp: omp functions only, single_thread: single-thread functions only",
+    parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization", formatter_class=argparse.RawTextHelpFormatter)
+    omp_function_set = {'base_omp', 'tr_omp', 'tr_omp_simd', 'row_omp', 'row_omp_simd', 'row_opt_omp', 'row_opt_omp_simd', 'strassen_omp', 'strassen_rec_omp'}
+    single_thread_function_set = {'base', 'row', 'row_simd', 'row_opt', 'row_opt_simd', 'tr', 'strassen'}
+    simd_function_set = {'tr_omp_simd', 'row_simd', 'row_opt_simd','row_omp_simd', 'row_opt_omp_simd'}
+    all_function_list = list(omp_function_set.union(single_thread_function_set))
+    all_function_list.sort()
+    function_choices = all_function_list
+    function_choices.extend(['omp', 'all', 'single_thread'])
+    parser.add_argument('-f', '--function-name', choices=function_choices, nargs='+', metavar='FUNC',
+                        help="Short name for matrix multiplication function."
+                        f"\nChoices:\n{function_choices}\n'all': all functions, 'omp': omp functions only, "
+                        "single_thread': single-thread functions only.",
                         required=True)
     parser.add_argument('-s', "--matrix-sizes", help="Matrix sizes", metavar=('MIN_SIZE', 'MAX_SIZE', 'STEP'),type=int, nargs=3, required=True)
     parser.add_argument('-l', '--opt-level', help="Optimization level in the execution file",
@@ -110,11 +119,8 @@ if __name__ == '__main__':
     root_bin_dir = 'bin'
 
     function_name_list = {}
-    omp_function_set = {'base_omp', 'tr_omp', 'tr_omp_simd', 'row_omp', 'row_omp_simd', 'strassen_omp', 'strassen_rec_omp'}
-    single_thread_function_set = {'base', 'row', 'tr', 'strassen'}
-    simd_function_set = {'tr_omp_simd', 'row_omp_simd'}
     if 'all' in function_name:
-        function_name_list = single_thread_function_set.union(omp_function_set)
+        function_name_list = all_function_list
     else:
         function_name_list = {item for item in function_name if item != 'omp' and item != 'single_thread'}
         if 'omp' in function_name:

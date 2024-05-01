@@ -22,6 +22,10 @@ void base_block_matrix_mult(double* __restrict__ a, double* __restrict__ b, doub
 void optimal_block_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){}
 void b_transposed_block_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){}
 
+///
+/// ADDING SIMD DIRECORY ALWAYS CAUSES WORSE PERFORMANCE!!!///
+///
+
 void base_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     for(int i=0;i<n;i++){ // i-th row in a
         for(int j=0;j<n;j++){ // j-th column in b
@@ -41,6 +45,8 @@ void base_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double
             }
         }
 }
+
+
 void row_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     for(int i=0;i<n;i++){
         for(int j=0;j<n;j++){
@@ -50,6 +56,42 @@ void row_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __r
         }
     }
 }
+void row_matrix_mult_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            #pragma omp simd
+            for(int k=0;k<n;k++){
+                c[i*n+k]+=a[i*n+j]*b[j*n+k];
+            }
+        }
+    }
+}
+void row_matrix_mult_opt(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    for(int i=0;i<n;i++){
+        double* c_i = c+i*n; // do not delete pointers because the memory can be used in the other functions
+        for(int j=0;j<n;j++){
+            double* b_j = b+j*n;
+            double a_ij = a[i*n+j];
+            for(int k=0;k<n;k++){
+                c_i[k]+=a_ij*b_j[k];
+            }
+        }
+    }
+}
+void row_matrix_mult_opt_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){  
+    for(int i=0;i<n;i++){
+        double* c_i = c+i*n; // do not delete pointers because the memory can be used in the other functions
+        for(int j=0;j<n;j++){
+            double* b_j = b+j*n;
+            double a_ij = a[i*n+j];
+            #pragma omp for simd
+                for(int k=0;k<n;k++){
+                    c_i[k]+=a_ij*b_j[k];
+                }
+        }
+    }
+}
+
 void row_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     #pragma omp parallel for shared(a, b, c, n)
         for(int i=0;i<n;i++){
@@ -60,19 +102,47 @@ void row_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double*
             }
         }
 }
-void row_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
-     #pragma omp parallel
-    {
-        #pragma omp for simd
-            for(int i=0;i<n;i++){
-                for(int j=0;j<n;j++){
-                    for(int k=0;k<n;k++){
-                        c[i*n+k]+=a[i*n+j]*b[j*n+k];
-                    }
+void row_matrix_mult_opt_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    #pragma omp parallel for shared(a, b, c, n)
+        for(int i=0;i<n;i++){
+            double* c_i = c+i*n; // do not delete pointers because the memory can be used in the other functions
+            for(int j=0;j<n;j++){
+                double* b_j = b+j*n;
+                double a_ij = a[i*n+j];
+                for(int k=0;k<n;k++){
+                    c_i[k]+=a_ij*b_j[k];
                 }
             }
+        }
+}
+void row_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    #pragma omp parallel for simd collapse(3)
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            for(int k=0;k<n;k++){
+                c[i*n+k]+=a[i*n+j]*b[j*n+k];
+            }
+        }
     }
 }
+void row_matrix_mult_opt_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    #pragma omp parallel
+    {
+        for(int i=0;i<n;i++){
+            double* c_i = c+i*n; // do not delete pointers because the memory can be used in the other functions
+            for(int j=0;j<n;j++){
+                double* b_j = b+j*n;
+                double a_ij = a[i*n+j];
+                #pragma omp for simd
+                    for(int k=0;k<n;k++){
+                        c_i[k]+=a_ij*b_j[k];
+                    }
+            }
+        }
+    }
+}
+
+
 void b_transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     for(int i=0;i<n;i++){
         for(int j=0;j<n;j++){
@@ -92,17 +162,6 @@ void b_transposed_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b
             }
         }
 }
-// void b_transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
-//     #pragma omp parallel for shared(a, b, c, n)
-//         for(int i=0;i<n;i++){
-//             for(int j=0;j<n;j++){
-//                 c[i*n+j]=std::inner_product(a, a+i*n, b, 0, std::multiplies<double>(), std::plus<double>());
-//                 // for(int k=0;k<n;k++){
-//                 //     c[i*n+j] += a[i*n+k]*b[j*n+k];
-//                 // }
-//             }
-//         }
-// }
 void b_transposed_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
     #pragma omp parallel
     {

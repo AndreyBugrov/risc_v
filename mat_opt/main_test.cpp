@@ -6,7 +6,13 @@ int main(int argc, char* argv[]){
         {"base multiplication", base_matrix_mult}, 
         {"base multiplication (omp)", base_matrix_mult_omp},
         {"row multiplication", row_matrix_mult},
+        {"row multiplication (simd)", row_matrix_mult_simd},
+        {"row multiplication (optimized)", row_matrix_mult_opt},
+        {"row muliplication (optimized+simd)", row_matrix_mult_opt_simd},
         {"row multiplication (omp)", row_matrix_mult_omp},
+        {"row multiplication (optimized+omp)", row_matrix_mult_opt_omp},
+        {"row multiplication (omp+simd)", row_matrix_mult_omp_simd},
+        {"row multiplication (optimized+omp+simd)", row_matrix_mult_opt_omp_simd},
         {"multiplication with transposed matrix", transposed_matrix_mult},
         {"multiplication with transposed matrix (omp)", transposed_matrix_mult_omp},
         {"multiplication with transposed matrix (omp+simd)", transposed_matrix_mult_omp_simd},
@@ -98,4 +104,5 @@ int main(int argc, char* argv[]){
     const auto end_tests{std::chrono::steady_clock::now()};
     std::chrono::duration<double> elapsed_seconds = end_tests - start_tests;
     print_test_statistics(passed_counter, failed_counter, elapsed_seconds.count(), failed_test_names);
+    std::cout<<sizeof(double)<<"\n";
 }

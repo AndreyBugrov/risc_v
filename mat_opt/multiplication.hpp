@@ -24,8 +24,13 @@ void base_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __
 void base_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 
 void row_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void row_matrix_mult_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void row_matrix_mult_opt(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void row_matrix_mult_opt_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void row_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void row_matrix_mult_opt_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void row_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
+void row_matrix_mult_opt_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 
 void b_transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
 void b_transposed_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n);
