@@ -5,8 +5,6 @@ import shlex
 import sys
 import os
 
-from colorama import Fore, Style
-
 def error_message(msg: str):
     print(f"Error: {msg}")
     sys.exit(-1)
@@ -81,26 +79,32 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Matrix multiplication experiments run automatization", formatter_class=argparse.RawTextHelpFormatter)
-    omp_function_set = {'base_omp', 'tr_omp', 'tr_omp_simd', 'row_omp', 'row_omp_simd', 'row_opt_omp', 'row_opt_omp_simd', 'strassen_omp', 'strassen_rec_omp'}
-    single_thread_function_set = {'base', 'row', 'row_simd', 'row_opt', 'row_opt_simd', 'tr', 'strassen'}
     simd_function_set = {'tr_omp_simd', 'row_simd', 'row_opt_simd','row_omp_simd', 'row_opt_omp_simd'}
-    all_function_list = list(omp_function_set.union(single_thread_function_set))
+
+    omp_function_set = {'base_omp', 'tr_omp', 'tr_omp_simd', 'row_omp', 'row_omp_simd', 'row_opt_omp', 'row_opt_omp_simd', 'strassen_omp', 'strassen_rec_omp'}
+    omp_no_simd_function_set = omp_function_set.difference(simd_function_set)
+    single_thread_function_set = {'base', 'row', 'row_simd', 'row_opt', 'row_opt_simd', 'tr', 'strassen'}
+    single_thread_no_simd_function_set = single_thread_function_set.difference(simd_function_set)
+    all_function_list = omp_function_set.union(single_thread_function_set)
+    all_no_simd_function_set = all_function_list.difference(simd_function_set)
+    all_function_list = list(all_function_list)
     all_function_list.sort()
     function_choices = all_function_list
-    function_choices.extend(['omp', 'all', 'single_thread'])
-    parser.add_argument('-f', '--function-name', choices=function_choices, nargs='+', metavar='FUNC',
-                        help="Short name for matrix multiplication function."
+    function_choices.extend(['omp', 'omp_no_simd' 'all', 'all_no_simd', 'single_thread', 'single_thread_no_simd'])
+    parser.add_argument('-f', '--function-names', choices=function_choices, nargs='+', metavar='FUNC',
+                        help="Matrix multiplication functions short names"
                         f"\nChoices:\n{function_choices}\n'all': all functions, 'omp': omp functions only, "
-                        "single_thread': single-thread functions only.",
+                        "single_thread': single-thread functions only. You can add '_no_simd' to 'all', 'omp' or "
+                        "'single_thread' to avoid simd version of functions",
                         required=True)
     parser.add_argument('-s', "--matrix-sizes", help="Matrix sizes", metavar=('MIN_SIZE', 'MAX_SIZE', 'STEP'),type=int, nargs=3, required=True)
-    parser.add_argument('-l', '--opt-level', help="Optimization level in the execution file",
+    parser.add_argument('-l', '--opt-level', help="Optimization level in the executable file",
                         choices=['release', 'opt', 'fast'], default='opt')
     parser.add_argument('-n', '--exp-num', help="Number of experiments with equal parameters", type=int, required=True)
     parser.add_argument('-d', '--device-name', help="RISC-V device name", choices=["sf2", "lichee", "mango", "kendryte", "x86"], required=True)
-    parser.add_argument('--is-temporary', help="should the results be saved to temporary directory", required=True, choices=['true', 'false'])
+    parser.add_argument('--is-temporary', help="Should the results be saved to temporary directory or not", required=True, choices=['true', 'false'])
     args = parser.parse_args()
-    function_name = args.function_name
+    function_names = args.function_name
     matrix_sizes = args.matrix_sizes
     opt_level = args.opt_level
     exp_num = args.exp_num
@@ -119,14 +123,24 @@ if __name__ == '__main__':
     root_bin_dir = 'bin'
 
     function_name_list = {}
-    if 'all' in function_name:
+    if 'all' in function_names:
         function_name_list = all_function_list
     else:
-        function_name_list = {item for item in function_name if item != 'omp' and item != 'single_thread'}
-        if 'omp' in function_name:
+        function_name_list = {item for item in function_names if item != 'omp' and item != 'omp_no_simd' and item != 'single_thread' and item != 'single_thread_no_simd'}
+        if 'omp' in function_names:
             function_name_list = function_name_list.union(omp_function_set)
-        if 'single_thread' in function_name:
+        if 'single_thread' in function_names:
             function_name_list = function_name_list.union(single_thread_function_set)
+        if 'all_no_simd' in function_names:
+            unction_name_list = function_name_list.union(all_no_simd_function_set)
+        else:
+            if 'omp_no_simd' in function_names:
+                function_name_list = function_name_list.union(omp_no_simd_function_set)
+            if 'single_thread_no_simd' in function_names:
+                function_name_list = function_name_list.union(single_thread_no_simd_function_set)
+
+    function_name_list = list(function_name_list)
+    function_name_list.sort()
 
     bin_path = os.path.join(root_bin_dir, device_name + '_exp')
     source_file_list = [os.path.join(root_source_dir, 'common.cpp'),
