@@ -7,6 +7,9 @@ import os
 import logging
 
 
+logger = logging.getLogger(__name__)
+
+
 def create_function_dict() -> dict[str, set[str]]:
     all_function_set = {'base', 'base_omp','tr', 'tr_omp', 'tr_omp_simd', 'row', 'row_omp', 'row_opt', 'row_opt_omp',
                         'row_simd', 'row_omp_simd', 'row_opt_omp_simd', 'row_opt_simd', 'strassen', 'strassen_omp',
@@ -24,7 +27,7 @@ def create_function_dict() -> dict[str, set[str]]:
     return function_names_dict
 
 
-def critical_message(msg: str, logger):
+def critical_message(msg: str):
     logger.critical(f"{msg}")
     sys.exit(-1)
 
@@ -69,7 +72,7 @@ def set_min_core_frequency_limit(frequency, core_num):
     subprocess.Popen(line, shell=True).communicate()
 
 
-def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], exp_num: int, device_type: str, frequency: int, is_temporary: bool, logger):
+def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], exp_num: int, device_type: str, frequency: int, is_temporary: bool):
     min_n = matrix_sizes[0]
     max_n = matrix_sizes[1] + 1
     step = matrix_sizes[2]
@@ -86,14 +89,14 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
             args = f"{bin_path} a {function_name} {num} {exp_num}"
             cmd = shlex.split(args)
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            full_out = proc.communicate()
-            out = full_out[0].decode('utf-8')
-            if full_out[1]:
-                logger.error(f"Unhandled C++ exception:\n{full_out[1].decode('utf-8')}")
+            out = proc.communicate()[0].decode('utf-8')  # we can't catch termination message (it is neither in stderr nor in stdout)
+            if proc.returncode:
+                critical_message(f'Process has completed with non-zero return code: {proc.returncode}')
             result = ';'.join(out[:-1].split('\n'))
             row = result.split(';')
             row.insert(0, num)
             writer.writerow(row)
+            logger.debug(f'Experiment with {i}x{i} matrix was completely carried out')
     logger.info(f'Results saved to {csv_file_name}')
 
 
@@ -121,21 +124,21 @@ if __name__ == '__main__':
     opt_level = args.opt_level
     exp_num = args.exp_num
     device_name = args.device_name
-    recompile = args.recompile
-
-    logger = logging.getLogger(__name__)
-    logging.basicConfig(level=logging.INFO)
     is_temporary = True if args.is_temporary == 'true' else False
+    recompile = True if args.recompile == 'true' else False
+
+    logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s')
+    
     if is_temporary:
         logger.warning('Results will be saved to temporary directory')
     else:
         logger.warning('Results will be saved to the base directory')
     if int(exp_num) < 1:
-        critical_message("Choose at least one experiment!", logger)
+        critical_message("Choose at least one experiment!")
     if matrix_sizes[2] <= 0:
-        critical_message("Step should be more than 0!", logger)
+        critical_message("Step should be more than 0!")
     if matrix_sizes[0] > matrix_sizes[1]:
-        critical_message("\"min_n\" should be less or equal \"max_n\"!", logger)
+        critical_message("\"min_n\" should be less or equal \"max_n\"!")
 
     type_handlings = {'release': '-O2', 'opt': '-O3', 'fast': '-Ofast'}
     
@@ -171,9 +174,9 @@ if __name__ == '__main__':
         logger.info("Start of the experiment execution phase")
         for function_item in function_names_set:
             logger.info(f'Process \"{function_item}\" function')
-            run_matrix_exp(bin_path, function_item, matrix_sizes, exp_num, device_name, frequencies[1], is_temporary, logger)
+            run_matrix_exp(bin_path, function_item, matrix_sizes, exp_num, device_name, frequencies[1], is_temporary)
     except KeyboardInterrupt:
-        critical_message('Program has been interrupted', logger)
+        critical_message('Program has been interrupted')
     finally:
         for core in core_nums:
             set_min_core_frequency_limit(frequencies[0], core)
