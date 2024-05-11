@@ -84,19 +84,21 @@ def run_matrix_exp(bin_path: str, function_name: str, matrix_sizes: list[int], e
     with open(csv_file_name, 'w', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerow(['Row size','OpenBLAS', 'Current', 'Ratio', 'Inaccuracy'])
-        for i in range(min_n, max_n, step):
-            num = str(i)
-            args = f"{bin_path} a {function_name} {num} {exp_num}"
-            cmd = shlex.split(args)
-            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            out = proc.communicate()[0].decode('utf-8')  # we can't catch termination message (it is neither in stderr nor in stdout)
-            if proc.returncode:
-                critical_message(f'Process has completed with non-zero return code: {proc.returncode}')
-            result = ';'.join(out[:-1].split('\n'))
-            row = result.split(';')
-            row.insert(0, num)
+    for i in range(min_n, max_n, step):
+        num = str(i)
+        args = f"{bin_path} a {function_name} {num} {exp_num}"
+        cmd = shlex.split(args)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        out = proc.communicate()[0].decode('utf-8')  # we can't catch termination message (it is neither in stderr nor in stdout)
+        if proc.returncode:
+            critical_message(f'Process has completed with non-zero return code: {proc.returncode}')
+        result = ';'.join(out[:-1].split('\n'))
+        row = result.split(';')
+        row.insert(0, num)
+        with open(csv_file_name, 'a', encoding='utf-8') as f:
+            writer = csv.writer(f, delimiter=';')
             writer.writerow(row)
-            logger.debug(f'Experiment with {i}x{i} matrix was completely carried out')
+        logger.debug(f'Experiment with {i}x{i} matrix was carried out')
     logger.info(f'Results saved to {csv_file_name}')
 
 
