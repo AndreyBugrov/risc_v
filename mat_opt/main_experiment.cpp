@@ -1,5 +1,6 @@
 #include "experiment.hpp"
 
+
 int main(int argc, char* argv[]){
     const bool is_automatic = std::string(argv[1]) == std::string("a") ? true : false; // it is strange but argv[1] != "a" && argv[1] != "a\0"
     std::string function_name = std::string(argv[2]);

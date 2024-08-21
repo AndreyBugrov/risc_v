@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
   double* total_seconds = new double[exp_num];
   double average_seconds;
 
-  int proc = omp_get_num_procs();
+  int proc = 4;
   double* thread_sum = new double[proc];
 
   zero_vector(total_seconds, exp_num);
@@ -112,6 +112,7 @@ int main(int argc, char* argv[]) {
                  /// do not do it at the end of iteration to prevent saving null sum
       const auto start_left{std::chrono::steady_clock::now()};
       zero_vector(thread_sum, proc);
+      omp_set_num_threads(4);
       #pragma omp parallel num_threads(proc) default(none) shared(step, N, thread_sum)
       {
         int thread_num = omp_get_thread_num();
@@ -134,6 +135,7 @@ int main(int argc, char* argv[]) {
                 /// do not do it at the end of iteration to prevent saving null sum
     zero_vector(thread_sum, proc);
     const auto start_middle{std::chrono::steady_clock::now()};
+    omp_set_num_threads(4);
     #pragma omp parallel num_threads(proc) default(none) shared(step, N, thread_sum)
     {
       int thread_num = omp_get_thread_num();

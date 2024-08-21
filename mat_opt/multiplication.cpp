@@ -36,6 +36,7 @@ void base_matrix_mult(double* __restrict__ a, double* __restrict__ b, double* __
     }
 }
 void base_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    omp_set_num_threads(4);
     #pragma omp parallel for shared(a, b, c, n)
         for(int i=0;i<n;i++){ // i-th row in a
             for(int j=0;j<n;j++){ // j-th column in b
@@ -93,6 +94,7 @@ void row_matrix_mult_opt_simd(double* __restrict__ a, double* __restrict__ b, do
 }
 
 void row_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    omp_set_num_threads(4);
     #pragma omp parallel for shared(a, b, c, n)
         for(int i=0;i<n;i++){
             for(int j=0;j<n;j++){
@@ -103,6 +105,7 @@ void row_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double*
         }
 }
 void row_matrix_mult_opt_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    omp_set_num_threads(4);
     #pragma omp parallel for shared(a, b, c, n)
         for(int i=0;i<n;i++){
             double* c_i = c+i*n; // do not delete pointers because the memory can be used in the other functions
@@ -126,6 +129,7 @@ void row_matrix_mult_omp_simd(double* __restrict__ a, double* __restrict__ b, do
     }
 }
 void row_matrix_mult_opt_omp_simd(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    omp_set_num_threads(4);
     #pragma omp parallel
     {
         for(int i=0;i<n;i++){
@@ -153,6 +157,7 @@ void b_transposed_matrix_mult(double* __restrict__ a, double* __restrict__ b, do
     }
 }
 void b_transposed_matrix_mult_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    omp_set_num_threads(4);
     #pragma omp parallel for shared(a, b, c, n)
         for(int i=0;i<n;i++){
             for(int j=0;j<n;j++){
@@ -461,6 +466,7 @@ void recursive_strassen_part_rec_omp(double* __restrict__ a, double* __restrict_
     matrix_sub(a12, a22, a12_sub_a22, n);
     matrix_add(b21, b22, b21_add_b22, n);
 
+    omp_set_num_threads(4);
     #pragma omp parallel sections
     {
         #pragma omp section
@@ -600,6 +606,7 @@ void matrix_add(double* __restrict__ a, double* __restrict__ b, double* __restri
     }
 }
 void matrix_add_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    omp_set_num_threads(4);
     #pragma omp parallel for shared(a, b, c, n)
         for(int i=0;i<n;i++){
             for(int j=0;j<n;j++){
@@ -615,6 +622,7 @@ void matrix_sub(double* __restrict__ a, double* __restrict__ b, double* __restri
     }
 }
 void matrix_sub_omp(double* __restrict__ a, double* __restrict__ b, double* __restrict__ c, int n){
+    omp_set_num_threads(4);
     #pragma omp parallel for shared(a, b, c, n)
         for(int i=0;i<n;i++){
             for(int j=0;j<n;j++){

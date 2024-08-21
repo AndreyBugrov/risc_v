@@ -104,5 +104,4 @@ int main(int argc, char* argv[]){
     const auto end_tests{std::chrono::steady_clock::now()};
     std::chrono::duration<double> elapsed_seconds = end_tests - start_tests;
     print_test_statistics(passed_counter, failed_counter, elapsed_seconds.count(), failed_test_names);
-    std::cout<<sizeof(double)<<"\n";
 }
